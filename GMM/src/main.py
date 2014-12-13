@@ -16,7 +16,7 @@ def main():
 
     def handle(path):
         tBegAll = time.time()
-        ubm = getUbm(pathToUbm)
+        ubm = getUbm(pathToUbm, preprocessing=True)
         if not os.path.exists(pathToUbmsDir):
             os.mkdir(pathToUbmsDir)
         if not os.path.exists(pathToLogDir):
@@ -29,7 +29,7 @@ def main():
                 newMeans = getNewMeans(ubm, features, 20)
                 pathToNewUbm = os.path.join(pathToUbmsDir, os.path.splitext(model)[0]) + '.gmm'
                 saveUbm(pathToNewUbm, pathToUbm, newMeans)
-                newUbm = getUbm(pathToNewUbm)
+                newUbm = getUbm(pathToNewUbm, preprocessing=True)
                 pathToLog = os.path.join(pathToLogDir, os.path.splitext(model)[0] + '.log_gmm')
                 saveLogGMM(newUbm, features, pathToLog)
                 deltaTime = time.time() - tBeg

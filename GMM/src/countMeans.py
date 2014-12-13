@@ -66,19 +66,14 @@ def getF_GMM(ubm, features, pathToLog=None):
 
 def getGamma(ubm, features):
     gamma = getF_GMM(ubm, features)
-    sumGammaOnGauss = np.sum(gamma)
-    gamma /= sumGammaOnGauss
+    gamma /= np.sum(gamma)
     return gamma
 
 def saveLogGMM(ubm, features, pathToLog):
-    ubm.sqrDetConv = np.multiply.reduce(np.power(ubm.covarianceMatrix, 0.5), axis=1)
-    ubm.covarianceMatrix = np.power(ubm.covarianceMatrix, -1)
     getF_GMM(ubm, features, pathToLog)
 
 
 def getNewMeans(ubm, features, r):
-    ubm.sqrDetConv = np.multiply.reduce(np.power(ubm.covarianceMatrix, 0.5), axis=1)
-    ubm.covarianceMatrix = np.power(ubm.covarianceMatrix, -1)
     gamma = getGamma(ubm, features)
     f_s = np.empty((ubm.means.shape))
     features = features.T
