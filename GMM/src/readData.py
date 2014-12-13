@@ -10,27 +10,19 @@ class Ubm:
         self.numberGauss = m_gauss
         self.weightGauss = weightGauss
         self.means = means
-        self.covarianceMatrix = covarianceMatrix
+        self.covMatDiag = covarianceMatrix
         self.sqrDetConv = None
         if preprocessing:
-            self.fillSqrDetConvAndInvCov()
+            self.__setSqrDetConvAndInvCov()
 
-    def fillSqrDetConvAndInvCov(self):
-        self.sqrDetConv = np.multiply.reduce(np.power(self.covarianceMatrix, 0.5), axis=1)
-        self.covarianceMatrix = np.power(self.covarianceMatrix, -1)
+    def __setSqrDetConvAndInvCov(self):
+        self.sqrDetConv = np.multiply.reduce(np.power(self.covMatDiag, 0.5), axis=1)
+        self.covMatDiag = np.power(self.covMatDiag, -1)
 
 
 def readMatrix(file, row, col):
     return np.array(struct.unpack('<{0}f'.format(row*col), file.read(4*row*col)), dtype=float).reshape(row, col)
 
-
-def saveUbm(pathToFile, pathToUbm, newMeans):
-    with open(pathToFile, 'wb') as f:
-        with open(pathToUbm, 'rb') as fromUbm:
-            f.write(fromUbm.read(4*(newMeans.shape[0] + 2)))
-            f.write(struct.pack('<{0}f'.format(newMeans.size), *newMeans.ravel()))
-            fromUbm.seek(4*newMeans.size, 1)
-            f.write(fromUbm.read(4*newMeans.size))
 
 
 def getFeatures(path):

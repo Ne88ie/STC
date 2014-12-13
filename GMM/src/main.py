@@ -1,8 +1,8 @@
 from __future__ import print_function, division
 import os
 import time
-from readData import getUbm, getFeatures, saveUbm
-from countMeans import getNewMeans, saveLogGMM
+from readData import getUbm, getFeatures
+from countMeans import getNewMeans, saveUbm, saveLogGMM
 
 __author__ = 'annie'
 
@@ -21,8 +21,9 @@ def main():
             os.mkdir(pathToUbmsDir)
         if not os.path.exists(pathToLogDir):
             os.mkdir(pathToLogDir)
-        for i, model in enumerate(os.listdir(path)):
-            if os.path.splitext(model)[-1] == '.features_bin':
+        for i, model in enumerate(os.listdir(path), start=171):
+            'M011(4)_f_resampled.gmm'
+            if os.path.splitext(model)[-1] == '.features_bin' and model[:6] > 'M053(3)':
                 tBeg = time.time()
                 print('Model', i+1)
                 features = getFeatures(os.path.join(path, model))
@@ -37,7 +38,7 @@ def main():
         deltaTimeAll = time.time() - tBegAll
         print('\nHandle all models for {0:.0f}m {1:.0f}s'.format(deltaTimeAll / 60, deltaTimeAll % 60))
 
-    handle(pathToModels)
+    # handle(pathToModels)
     handle(pathToTests)
 
 if __name__ == '__main__':

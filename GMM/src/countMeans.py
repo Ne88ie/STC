@@ -46,7 +46,7 @@ T3991
 
 '''
 
-def getF_GMM(ubm, features, pathToLog=None):
+def getF_GMM(ubm, features):
     sys.stdout.write(''); sys.stdout.flush()
     numberFeatures = features.shape[0]
     F_GMM = np.empty((numberFeatures, ubm.numberGauss))
@@ -58,10 +58,6 @@ def getF_GMM(ubm, features, pathToLog=None):
         F_GMM[t] = np.exp(np.sum(-0.5 * x_t_numberGauss * x_t_numberGauss * ubm.covarianceMatrix, axis=1)) / ubm.sqrDetConv
     F_GMM *= ubm.weightGauss
     sys.stdout.write('\r' + ' '*10 + '\r'); sys.stdout.flush()
-    if pathToLog:
-        with open(pathToLog, 'wb') as f:
-            pickle.dump(np.log(np.sum(F_GMM, axis=1)), f)
-        print('\tsaved log')
     return F_GMM
 
 def getGamma(ubm, features):
@@ -70,8 +66,19 @@ def getGamma(ubm, features):
     return gamma
 
 def saveLogGMM(ubm, features, pathToLog):
-    getF_GMM(ubm, features, pathToLog)
+    f_gmm = getF_GMM(ubm, features, pathToLog)
+    with open(pathToLog, 'wb') as f:
+        pickle.dump(np.log(np.sum(f_gmm, axis=1)), f)
+    print('\tsaved log')
 
+def saveUbm(pathToFile, pathToUbm, newMeans):
+    with open(pathToFile, 'wb') as f:
+        with open(pathToUbm, 'rb') as fromUbm:
+            f.write(fromUbm.read(4*(newMeans.shape[0] + 2)))
+            f.write(struct.pack('<{0}f'.format(newMeans.size), *newMeans.ravel()))
+            fromUbm.seek(4*newMeans.size, 1)
+            f.write(fromUbm.read(4*newMeans.size))
+    print('\tsaved ubm') 
 
 def getNewMeans(ubm, features, r):
     gamma = getGamma(ubm, features)
@@ -81,5 +88,4 @@ def getNewMeans(ubm, features, r):
         f_s[m] = np.sum(features * gamma[:, m], axis=1)
     n_plus_r = np.sum(gamma) + r
     newMeans = 1/n_plus_r * f_s + r/n_plus_r * ubm.means
-    print('\tsaved ubm')
     return newMeans
