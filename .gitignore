@@ -1,2 +1,7 @@
 .idea
 GMM/src/test.py
+
+GMM/src/oldCountMeans.py
+
+
+*.pyc

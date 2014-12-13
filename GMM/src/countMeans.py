@@ -1,7 +1,5 @@
 from __future__ import print_function, division
-from math import pi
 import numpy as np
-import pickle
 import sys
 
 __author__ = 'annie'
@@ -26,29 +24,14 @@ T3991
 ____________________________
 ubm D*M
 ----------------------------
-   M1 M2 M3 ... M512
-D1
-D2
+   D1 D2 D3 ... D39
+M1
+M2
 ...
-D39
+M39
 ----------------------------
 
 '''
-
-
-
-def getWeightNorm(weightGauss, covarianceDiag, means, x_t):
-    """
-    or
-    return weightGauss * scipy.stats.multivariate_normal(mean=means, cov=covarianceDiag).pdf(x_t)
-    """
-    # dim = covarianceDiag.shape[1]
-    # pdf  = weightGauss/((2*pi)**(dim/2) * np.multiply.reduce(covarianceDiag)[0, 0]**.5)
-    pdf = weightGauss/(np.multiply.reduce(covarianceDiag)[0, 0]**.5) # np.linalg.det
-    covarianceMatrix = np.mat(np.diag(covarianceDiag.T.tolist()[0]))
-    difference = x_t - means.T
-    pdf *= np.exp(-0.5*np.multiply(difference, np.diag(np.linalg.inv(covarianceMatrix))) * difference.T)
-    return pdf
 
 '''
 Gamma T*M
@@ -64,37 +47,32 @@ T3991
 
 def getGamma(ubm, features):
     print('\t\tStart getGamma')
-    gamma = np.mat(np.empty((features.shape[0], ubm.means.shape[1])))
-    for t in range(features.shape[0]):
-        if (t + 1) % 500 == 0:
-            sys.stdout.write('\r' + '\t\t{0:.0%} of t'.format((t + 1)/features.shape[0]))
-            sys.stdout.flush()
-        for gauss in range(ubm.means.shape[1]):
-            gamma[t, gauss] = getWeightNorm(ubm.weightGauss[gauss],
-                                            ubm.covarianceMatrix[:, gauss],
-                                            ubm.means[:, gauss],
-                                            features[t, :])
-    for t in range(features.shape[0]):
-        denominator = np.sum(gamma[t, :])
-        for gauss in range(ubm.means.shape[1]):
-            gamma[t, gauss] = gamma[t, gauss]/denominator if denominator else gamma[t, gauss]/0.0000001
+    numberFeatures = features.shape[0]
+    gamma = np.empty((numberFeatures, ubm.numberGauss))
+    for t in xrange(numberFeatures):
+        sys.stdout.write('\r' + '\t\t{0:.0%} of sample'.format((t + 1)/numberFeatures))
+        sys.stdout.flush()
+        x_t_numberGauss = np.array(features[t].tolist() * ubm.numberGauss).reshape(ubm.numberGauss, -1)
+        x_t_numberGauss = x_t_numberGauss - ubm.means
+        gamma[t] = np.exp(np.sum(-0.5 * x_t_numberGauss * x_t_numberGauss * ubm.covarianceMatrix, axis=1)) / ubm.sqrDetConv
+
+    gamma *= ubm.weightGauss
+    sumGammaOnGauss = np.sum(gamma)
+    gamma /= sumGammaOnGauss
     print('\r\t\tFinish getGamma')
     return gamma
 
 
-def getNewMeans(ubm, features, r, nameModel):
+def getNewMeans(ubm, features, r):
     print('\tStart getNewMeans')
-    newMeans = np.mat(np.empty(ubm.means.shape))
+    ubm.sqrDetConv = np.multiply.reduce(np.power(ubm.covarianceMatrix, 0.5), axis=1)
+    ubm.covarianceMatrix = np.power(ubm.covarianceMatrix, -1)
     gamma = getGamma(ubm, features)
-    with open('../data/tempGamma/' + nameModel + '.db', 'wb') as gammaDB:
-        pickle.dump(gamma, gammaDB)
-    # with open('../data/tempGamma/' + nameModel + '.db', 'rb') as gammaDB:
-    #     gamma = pickle.load(gammaDB)
-    for gauss in range(ubm.means.shape[1]):
-        sys.stdout.write('\r\tgauss {0}'.format(gauss + 1)); sys.stdout.flush()
-        nGauss = np.sum(gamma[:, gauss])
-        alpha = nGauss/(nGauss + r)
-        fGauss = sum((features[t, :] * gamma[t, gauss] for t in range(features.shape[0])))/nGauss
-        newMeans[:, gauss] = alpha * fGauss.T + (1 - alpha) * ubm.means[:, gauss]
-    print('\r\tFinish getNewMeans')
+    f_s = np.empty((ubm.means.shape))
+    features = features.T
+    for m in xrange(ubm.numberGauss):
+        f_s[m] = np.sum(features * gamma[:, m], axis=1)
+    n_plus_r = np.sum(gamma) + r
+    newMeans = 1/n_plus_r * f_s + r/n_plus_r * ubm.means
+    print('\tFinish getNewMeans')
     return newMeans

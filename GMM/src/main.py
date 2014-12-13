@@ -14,7 +14,6 @@ def main():
 
     tBegAll = time.time()
     ubm = getUbm(pathToUbm)
-    print(ubm.means[0])
     if not os.path.exists(pathToUbms):
         os.mkdir(pathToUbms)
     for i, model in enumerate(os.listdir(pathToModels)):
@@ -22,13 +21,11 @@ def main():
             tBeg = time.time()
             print('Model', i+1)
             features = getFeatures(os.path.join(pathToModels, model))
-            newMeans = getNewMeans(ubm, features, 16, os.path.splitext(model)[0])
+            newMeans = getNewMeans(ubm, features, 16)
             pathToNewUbm = os.path.join(pathToUbms, os.path.splitext(model)[0]) + '.gmm'
-            saveUbm(pathToNewUbm, ubm, newMeans)
+            saveUbm(pathToNewUbm, pathToUbm, newMeans)
             deltaTime = time.time() - tBeg
             print('\tHandled for {0:.0f}m {1:.0f}s'.format(deltaTime / 60, deltaTime % 60))
-            sample1 = getUbm(pathToNewUbm)
-            print(sample1.means[0])
         break
     deltaTimeAll = time.time() - tBegAll
     print('\nHandle all models for {0:.0f}m {1:.0f}s'.format(deltaTimeAll / 60, deltaTimeAll % 60))
