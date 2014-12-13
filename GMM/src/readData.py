@@ -13,14 +13,6 @@ class Ubm:
         self.covarianceMatrix = covarianceMatrix
         self.sqrDetConv = None
 
-    def __str__(self):
-        print('dim =', self.dim)
-        print('m_gauss =', self.numberGauss)
-        print('weightGauss =', self.weightGauss)
-        print('means =', self.means)
-        print('covarianceMatrix =', self.covarianceMatrix)
-        print('sqrDetConv =', self.sqrDetConv)
-
 
 def readMatrix(file, row, col):
     return np.array(struct.unpack('<{0}f'.format(row*col), file.read(4*row*col)), dtype=float).reshape(row, col)
@@ -50,7 +42,3 @@ def getUbm(path):
         means = readMatrix(f, m_gauss, dim)
         covarianceMatrix = readMatrix(f, m_gauss, dim)
         return Ubm(dim, m_gauss, weightGauss, means, covarianceMatrix)
-
-
-if __name__ == '__main__':
-    pass

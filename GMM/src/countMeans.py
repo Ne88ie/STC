@@ -1,5 +1,6 @@
 from __future__ import print_function, division
 import numpy as np
+import pickle
 import sys
 
 __author__ = 'annie'
@@ -45,26 +46,37 @@ T3991
 
 '''
 
-def getGamma(ubm, features):
-    print('\t\tStart getGamma')
+def getF_GMM(ubm, features, pathToLog=None):
+    sys.stdout.write(''); sys.stdout.flush()
     numberFeatures = features.shape[0]
-    gamma = np.empty((numberFeatures, ubm.numberGauss))
+    F_GMM = np.empty((numberFeatures, ubm.numberGauss))
     for t in xrange(numberFeatures):
-        sys.stdout.write('\r' + '\t\t{0:.0%} of sample'.format((t + 1)/numberFeatures))
+        sys.stdout.write('\r' + '\t{0:.0%}'.format((t + 1)/numberFeatures))
         sys.stdout.flush()
         x_t_numberGauss = np.array(features[t].tolist() * ubm.numberGauss).reshape(ubm.numberGauss, -1)
         x_t_numberGauss = x_t_numberGauss - ubm.means
-        gamma[t] = np.exp(np.sum(-0.5 * x_t_numberGauss * x_t_numberGauss * ubm.covarianceMatrix, axis=1)) / ubm.sqrDetConv
+        F_GMM[t] = np.exp(np.sum(-0.5 * x_t_numberGauss * x_t_numberGauss * ubm.covarianceMatrix, axis=1)) / ubm.sqrDetConv
+    F_GMM *= ubm.weightGauss
+    sys.stdout.write('\r' + ' '*10 + '\r'); sys.stdout.flush()
+    if pathToLog:
+        with open(pathToLog, 'wb') as f:
+            pickle.dump(np.log(np.sum(F_GMM, axis=1)), f)
+        print('\tsaved log')
+    return F_GMM
 
-    gamma *= ubm.weightGauss
+def getGamma(ubm, features):
+    gamma = getF_GMM(ubm, features)
     sumGammaOnGauss = np.sum(gamma)
     gamma /= sumGammaOnGauss
-    print('\r\t\tFinish getGamma')
     return gamma
+
+def saveLogGMM(ubm, features, pathToLog):
+    ubm.sqrDetConv = np.multiply.reduce(np.power(ubm.covarianceMatrix, 0.5), axis=1)
+    ubm.covarianceMatrix = np.power(ubm.covarianceMatrix, -1)
+    getF_GMM(ubm, features, pathToLog)
 
 
 def getNewMeans(ubm, features, r):
-    print('\tStart getNewMeans')
     ubm.sqrDetConv = np.multiply.reduce(np.power(ubm.covarianceMatrix, 0.5), axis=1)
     ubm.covarianceMatrix = np.power(ubm.covarianceMatrix, -1)
     gamma = getGamma(ubm, features)
@@ -74,5 +86,5 @@ def getNewMeans(ubm, features, r):
         f_s[m] = np.sum(features * gamma[:, m], axis=1)
     n_plus_r = np.sum(gamma) + r
     newMeans = 1/n_plus_r * f_s + r/n_plus_r * ubm.means
-    print('\tFinish getNewMeans')
+    print('\tsaved ubm')
     return newMeans
