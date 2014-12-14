@@ -47,14 +47,11 @@ T3991
 
 def getF_GMM(ubm, features):
     numberFeatures = features.shape[0]
-    F_GMM = np.empty((numberFeatures, ubm.numberGauss))
-    for t in xrange(numberFeatures):
-        sys.stdout.write('\r\t{0:.0%}'.format((t + 1)/numberFeatures)); sys.stdout.flush()
-        x_t_numberGauss = np.array(features[t].tolist() * ubm.numberGauss).reshape(ubm.numberGauss, -1)
-        x_t_numberGauss = x_t_numberGauss - ubm.means
-        F_GMM[t] = np.exp(np.sum(-0.5 * x_t_numberGauss * x_t_numberGauss * ubm.covMatDiag, axis=1)) / ubm.sqrDetConv
+    F_GMM = np.concatenate((features[np.newaxis],)*ubm.numberGauss) - \
+            np.concatenate((ubm.means[:, np.newaxis],)*numberFeatures, axis=1)
+    F_GMM = -0.5 * np.sum(F_GMM * F_GMM * np.concatenate((ubm.covMatDiag[:, np.newaxis],)*numberFeatures, axis=1), axis=2)
+    F_GMM = np.exp(F_GMM).T
     F_GMM *= ubm.weightGauss
-    sys.stdout.write('\r' + ' '*10 + '\r'); sys.stdout.flush()
     return F_GMM
 
 

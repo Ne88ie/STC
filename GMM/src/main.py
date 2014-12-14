@@ -8,18 +8,18 @@ __author__ = 'annie'
 
 def main():
     pathToData = '/Users/annie/SELabs/Kudashev/Lab1/data'
-    pathToModels = os.path.join(pathToData, 'models')
+    pathToModelsDir = os.path.join(pathToData, 'models')
     pathToTestsDir = os.path.join(pathToData, 'tests')
     pathToUbm = os.path.join(pathToData, 'ubm.gmm')
     pathToUbmsDir = os.path.join(pathToData, 'ubms')
     pathToProtocolsDir = os.path.join(pathToData, 'protocols')
 
-    def handle(path=pathToModels):
+    def handle(path=pathToModelsDir):
         tBegAll = time.time()
         ubm = getUbm(pathToUbm, preprocessing=True)
         if not os.path.exists(pathToUbmsDir):
             os.mkdir(pathToUbmsDir)
-        for i, model in enumerate(os.listdir(path), start=171):
+        for i, model in enumerate(os.listdir(path)):
             if os.path.splitext(model)[-1] == '.features_bin':
                 tBeg = time.time()
                 print('Model', i+1)
@@ -29,6 +29,7 @@ def main():
                 saveUbm(pathToNewUbm, pathToUbm, newMeans)
                 deltaTime = time.time() - tBeg
                 print('\tHandled for {0:.0f}m {1:.0f}s'.format(deltaTime / 60, deltaTime % 60))
+            break
         deltaTimeAll = time.time() - tBegAll
         print('\nHandle all models for {0:.0f}m {1:.0f}s'.format(deltaTimeAll / 60, deltaTimeAll % 60))
 
@@ -50,17 +51,14 @@ def main():
                                 pathToTestFeatures = os.path.join(pathToTestsDir, os.path.splitext(testSample)[0] + '.features_bin')
                                 modelUbm = getUbm(pathToModelUbm, preprocessing=True)
                                 testFeatures = getFeatures(pathToTestFeatures)
-                                answers.write(str(criterionNeymanPearson(modelUbm, testFeatures)))
+                                answers.write(str(criterionNeymanPearson(modelUbm, testFeatures)) + '\n')
                                 deltaTime = time.time() - tBeg
                                 print('\tHandled for {0:.0f}m {1:.0f}s'.format(deltaTime / 60, deltaTime % 60))
                                 i += 1
-                            break
-            break
         deltaTimeAll = time.time() - tBegAll
         print('\nHandle all protocols for {0:.0f}m {1:.0f}s'.format(deltaTimeAll / 60, deltaTimeAll % 60))
 
     compareProtocols()
-
 
 
 if __name__ == '__main__':

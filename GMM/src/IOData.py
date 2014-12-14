@@ -1,3 +1,4 @@
+# coding=utf-8
 __author__ = 'annie'
 
 from struct import pack, unpack
@@ -5,18 +6,21 @@ import numpy as np
 
 
 class Ubm:
-    def __init__(self, dim, m_gauss, weightGauss, means, covarianceMatrix, preprocessing=None):
+    def __init__(self, dim, m_gauss, weightGauss, means, covMatDiag, preprocessing=None):
         self.dim = dim
         self.numberGauss = m_gauss
         self.weightGauss = weightGauss
         self.means = means
-        self.covMatDiag = covarianceMatrix
-        self.sqrDetConv = None
+        self.covMatDiag = covMatDiag
         if preprocessing:
             self.__setSqrDetConvAndInvCov()
 
     def __setSqrDetConvAndInvCov(self):
-        self.sqrDetConv = np.multiply.reduce(np.power(self.covMatDiag, 0.5), axis=1)
+        """
+        Вектор weightGauss поэлементно делим на вектор корней определителей ковариационных матриц.
+        В covMatDiag сохраняем диагонали обратнных ковариационых матриц.
+        """
+        self.weightGauss /= np.prod(np.power(self.covMatDiag, 0.5), axis=1)
         self.covMatDiag = np.power(self.covMatDiag, -1)
 
 
@@ -38,8 +42,8 @@ def getUbm(path, preprocessing=None):
         m_gauss = unpack('<i', f.read(4))[0]
         weightGauss = np.array(unpack('<{0}f'.format(m_gauss), f.read(4*m_gauss)), dtype=float)
         means = readMatrix(f, m_gauss, dim)
-        covarianceMatrix = readMatrix(f, m_gauss, dim)
-        return Ubm(dim, m_gauss, weightGauss, means, covarianceMatrix, preprocessing)
+        covMatDiag = readMatrix(f, m_gauss, dim)
+        return Ubm(dim, m_gauss, weightGauss, means, covMatDiag, preprocessing)
 
 
 def saveUbm(pathToFile, pathToUbm, newMeans):
