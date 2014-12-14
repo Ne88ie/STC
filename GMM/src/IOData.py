@@ -20,12 +20,12 @@ class Ubm:
         Вектор weightGauss поэлементно делим на вектор корней определителей ковариационных матриц.
         В covMatDiag сохраняем диагонали обратнных ковариационых матриц.
         """
-        self.weightGauss /= np.prod(np.power(self.covMatDiag, 0.5), axis=1)
-        self.covMatDiag = np.power(self.covMatDiag, -1)
+        self.weightGauss /= np.prod(np.sqrt(self.covMatDiag), axis=1)
+        self.covMatDiag = 1 / self.covMatDiag
 
 
 def readMatrix(file, row, col):
-    return np.array(unpack('<{0}f'.format(row*col), file.read(4*row*col)), dtype=float).reshape(row, col)
+    return np.array(unpack('<{0}f'.format(row*col), file.read(4*row*col)), dtype=np.float64).reshape(row, col)
 
 
 
@@ -40,7 +40,7 @@ def getUbm(path, preprocessing=None):
     with open(path, 'rb') as f:
         dim = unpack('<i', f.read(4))[0]
         m_gauss = unpack('<i', f.read(4))[0]
-        weightGauss = np.array(unpack('<{0}f'.format(m_gauss), f.read(4*m_gauss)), dtype=float)
+        weightGauss = np.array(unpack('<{0}f'.format(m_gauss), f.read(4*m_gauss)), dtype=np.float64)
         means = readMatrix(f, m_gauss, dim)
         covMatDiag = readMatrix(f, m_gauss, dim)
         return Ubm(dim, m_gauss, weightGauss, means, covMatDiag, preprocessing)

@@ -1,6 +1,6 @@
+# coding=utf-8
 from __future__ import print_function, division
 import numpy as np
-import sys
 
 __author__ = 'annie'
 
@@ -45,10 +45,8 @@ TN
 '''
 
 def getF_GMM(ubm, features):
-    numberFeatures = features.shape[0]
-    F_GMM = np.concatenate((features[np.newaxis],)*ubm.numberGauss) - \
-            np.concatenate((ubm.means[:, np.newaxis],)*numberFeatures, axis=1)
-    F_GMM = -0.5 * np.sum(F_GMM * F_GMM * np.concatenate((ubm.covMatDiag[:, np.newaxis],)*numberFeatures, axis=1), axis=2)
+    F_GMM = features[np.newaxis] - ubm.means[:, np.newaxis]
+    F_GMM = -0.5 * np.sum(F_GMM * F_GMM * ubm.covMatDiag[:, np.newaxis], axis=2)
     F_GMM = np.exp(F_GMM).T
     F_GMM *= ubm.weightGauss
     return F_GMM
@@ -61,24 +59,43 @@ def getGamma(ubm, features):
 
 
 def getLogGMM(ubm, features):
-    print('\tGet LogGMM')
+    print('\tgetting LogGMM ...', end='')
     f_gmm = getF_GMM(ubm, features)
+    print('\r' + ' '*19 + '\r', end='')
     return np.log(np.sum(f_gmm, axis=1))
 
 
 def getNewMeans(ubm, features, r=20):
-    print('\tGet new means')
+    print('\tgetting new means ...', end='')
     gamma = getGamma(ubm, features)
-    statisticsFirst = np.sum(np.concatenate((features[np.newaxis],)*ubm.numberGauss)
-                      * np.concatenate((gamma.T[:, :, np.newaxis],)*ubm.dim, axis=2), axis=1)
     n_plus_r = np.sum(gamma) + r
+
+    # вычисляем первую статисику Баумана-Уэлша
+    statisticsFirst = np.empty((ubm.means.shape))
+    featuresT = features.T
+    for m in xrange(ubm.numberGauss):
+        statisticsFirst[m] = np.sum(featuresT*gamma[:, m], axis=1)
+
     newMeans = 1 / n_plus_r * statisticsFirst + r / n_plus_r * ubm.means
+    print('\r' + ' '*22 + '\r', end='')
+    return newMeans
+
+def getNewMeans3D(ubm, features, r=20):
+    print('\tgetting new means ...', end='')
+    gamma = getGamma(ubm, features)
+    n_plus_r = np.sum(gamma) + r
+
+    # вычисляем первую статисику Баумана-Уэлша
+    statisticsFirst = np.sum(features[:, np.newaxis] * gamma[:, :, np.newaxis], axis=0)
+
+    newMeans = 1 / n_plus_r * statisticsFirst + r / n_plus_r * ubm.means
+    print('\r' + ' '*22 + '\r', end='')
     return newMeans
 
 
-def criterionNeymanPearson(modelUbm, testFeatures):
+def criterionNeymanPearson(modelUbm, testFeatures, r=20):
     modelSample = getLogGMM(modelUbm, testFeatures)
-    newMeans = getNewMeans(modelUbm, testFeatures, 20)
+    newMeans = getNewMeans3D(modelUbm, testFeatures, r)
     modelUbm.means = newMeans
     testSample = getLogGMM(modelUbm, testFeatures)
     return sum(testSample - modelSample)/modelSample.size

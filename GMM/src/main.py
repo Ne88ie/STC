@@ -2,7 +2,7 @@ from __future__ import print_function, division
 import os
 import time
 from IOData import getUbm, getFeatures, saveUbm
-from calculations import getNewMeans, criterionNeymanPearson
+from calculations import getNewMeans, getNewMeans3D, criterionNeymanPearson
 
 __author__ = 'annie'
 
@@ -13,6 +13,7 @@ def main():
     pathToUbm = os.path.join(pathToData, 'ubm.gmm')
     pathToUbmsDir = os.path.join(pathToData, 'ubms')
     pathToProtocolsDir = os.path.join(pathToData, 'protocols')
+    r = 20
 
     def handle(path=pathToModelsDir):
         tBegAll = time.time()
@@ -24,24 +25,23 @@ def main():
                 tBeg = time.time()
                 print('Model', i+1)
                 features = getFeatures(os.path.join(path, model))
-                newMeans = getNewMeans(ubm, features, 20)
+                newMeans = getNewMeans3D(ubm, features, r)
                 pathToNewUbm = os.path.join(pathToUbmsDir, os.path.splitext(model)[0]) + '.gmm'
                 saveUbm(pathToNewUbm, pathToUbm, newMeans)
                 deltaTime = time.time() - tBeg
                 print('\tHandled for {0:.0f}m {1:.0f}s'.format(deltaTime / 60, deltaTime % 60))
-            break
         deltaTimeAll = time.time() - tBegAll
         print('\nHandle all models for {0:.0f}m {1:.0f}s'.format(deltaTimeAll / 60, deltaTimeAll % 60))
 
-    handle()
+    # handle()
 
     def compareProtocols(path=pathToProtocolsDir):
         tBegAll = time.time()
-        for protocol in os.listdir(path):
+        for protocol in sorted(os.listdir(path), reverse=True):
             if os.path.splitext(protocol)[-1] == '.txt':
                 i = 1
                 with open(os.path.join(path, protocol)) as p:
-                    with open(os.path.join(path, os.path.splitext(protocol)[0] + '_answers.txt'), 'w') as answers:
+                    with open(os.path.join(path, 'answers', os.path.splitext(protocol)[0] + '_answers.txt'), 'w') as answers:
                         for gmms in p:
                             if gmms:
                                 tBeg = time.time()
@@ -51,7 +51,7 @@ def main():
                                 pathToTestFeatures = os.path.join(pathToTestsDir, os.path.splitext(testSample)[0] + '.features_bin')
                                 modelUbm = getUbm(pathToModelUbm, preprocessing=True)
                                 testFeatures = getFeatures(pathToTestFeatures)
-                                answers.write(str(criterionNeymanPearson(modelUbm, testFeatures)) + '\n')
+                                answers.write(str(criterionNeymanPearson(modelUbm, testFeatures, r)) + '\n')
                                 deltaTime = time.time() - tBeg
                                 print('\tHandled for {0:.0f}m {1:.0f}s'.format(deltaTime / 60, deltaTime % 60))
                                 i += 1
@@ -63,3 +63,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+    pass
