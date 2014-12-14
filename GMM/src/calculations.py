@@ -1,7 +1,6 @@
 # coding=utf-8
 from __future__ import print_function, division
 import numpy as np
-import time
 
 __author__ = 'annie'
 
@@ -85,9 +84,9 @@ def getNewMeans3D(ubm, features, r=20):
     :param r: relevance
     :return: the matrix of average values for speaker's model
     """
-    print('\tgetting new means ...', end='')
     gamma = getGamma(ubm, features)
     gamma /= np.sum(gamma)
+    print('\tgetting new means ...', end='')
     n_plus_r = np.sum(gamma) + r
 
     # calculated first Baum–Welch's statistics

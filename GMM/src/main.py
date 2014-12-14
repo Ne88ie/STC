@@ -1,3 +1,4 @@
+# coding=utf-8
 from __future__ import print_function, division
 import os
 import time
@@ -49,7 +50,7 @@ def main():
         tBegAll = time.time()
         try:
             ubm = getGmm(pathToUbm, preprocessing=True)
-            for protocol in sorted(os.listdir(path), reverse=True):
+            for protocol in sorted(os.listdir(path)):
                 if os.path.splitext(protocol)[-1] == '.txt':
                     i = 1
                     with open(os.path.join(path, protocol)) as p:
