@@ -14,6 +14,7 @@ def main():
     pathToUbm = os.path.join(pathToData, 'ubm.gmm')
     pathToUbmsDir = os.path.join(pathToData, 'ubms')
     pathToProtocolsDir = os.path.join(pathToData, 'protocols')
+    pathToAnswersDir = os.path.join(pathToData, pathToProtocolsDir, 'answers')
     r = 20
 
     def handle(path=pathToModelsDir):
@@ -23,10 +24,10 @@ def main():
         """
         tBegAll = time.time()
         try:
-            ubm = getGmm(pathToUbm, preprocessing=True)
             if not os.path.exists(pathToUbmsDir):
                 os.mkdir(pathToUbmsDir)
-            for i, model in enumerate(os.listdir(path)):
+            ubm = getGmm(pathToUbm, preprocessing=True)
+            for i, model in enumerate(sorted(os.listdir(path))):
                 if os.path.splitext(model)[-1] == '.features_bin':
                     tBeg = time.time()
                     print('Model', i+1)
@@ -49,16 +50,18 @@ def main():
         """
         tBegAll = time.time()
         try:
+            if not os.path.exists(pathToAnswersDir):
+                os.mkdir(pathToAnswersDir)
             ubm = getGmm(pathToUbm, preprocessing=True)
             for protocol in sorted(os.listdir(path)):
                 if os.path.splitext(protocol)[-1] == '.txt':
                     i = 1
                     with open(os.path.join(path, protocol)) as p:
-                        with open(os.path.join(path, 'answers', os.path.splitext(protocol)[0] + '_answers.txt'), 'w') as answers:
+                        with open(os.path.join(pathToAnswersDir, os.path.splitext(protocol)[0] + '_answers.txt'), 'w') as answers:
                             for gmms in p:
                                 if gmms:
                                     tBeg = time.time()
-                                    print('{0} {1}'.format(os.path.splitext(protocol)[0][:-1].capitalize(), i))
+                                    print(os.path.splitext(protocol)[0][:-1].capitalize() + ' ' + i)
                                     modelSample, testSample = gmms.split()
                                     pathToSpeakerGmm = os.path.join(pathToUbmsDir, os.path.splitext(modelSample)[0] + '.gmm')
                                     pathToTestFeatures = os.path.join(pathToTestsDir, os.path.splitext(testSample)[0] + '.features_bin')
