@@ -22,6 +22,7 @@ def main():
         Выполняем первую часть задания: получаем апостериорные оценки средних значений гауссойд распределения GMM,
         взяв в качестве априорного распределения парметров значения UBM.
         """
+        print('Start handle')
         tBegAll = time.time()
         try:
             if not os.path.exists(pathToGmmsDir):
@@ -39,15 +40,16 @@ def main():
                     print('\tHandled for {0:.0f}m {1:.0f}s'.format(deltaTime / 60, deltaTime % 60))
         finally:
             deltaTimeAll = time.time() - tBegAll
-            print('\nHandle all models for {0:.0f}m {1:.0f}s'.format(deltaTimeAll / 60, deltaTimeAll % 60))
+            print('\nAll models were handled for {0:.0f}m {1:.0f}s\n'.format(deltaTimeAll / 60, deltaTimeAll % 60))
 
-    # handle()
+    handle()
 
     def compareProtocols(path=pathToProtocolsDir):
         """
         Выполняем второую часть задания: для targets- и imposters-протоколов подсчитываем среднее значение log
         правдоподобия по критерию Неймана-Пирсона.
         """
+        print('Start compareProtocols')
         tBegAll = time.time()
         try:
             if not os.path.exists(pathToAnswersDir):
@@ -74,7 +76,7 @@ def main():
                                     i += 1
         finally:
             deltaTimeAll = time.time() - tBegAll
-            print('\nHandle all protocols for {0:.0f}m {1:.0f}s'.format(deltaTimeAll / 60, deltaTimeAll % 60))
+            print('\nAll protocols were compared for {0:.0f}m {1:.0f}s\n'.format(deltaTimeAll / 60, deltaTimeAll % 60))
 
     compareProtocols()
 
