@@ -5,9 +5,9 @@ import numpy as np
 __author__ = 'annie'
 
 '''
-D = 39
-M = 512
-T1 ~ 4000-22000
+D = 39 размерность вектора признаков
+M = 512 количество гаусойд
+T1 ~ 4000-22000 количество признаков
 ____________________________
 features_bin T * D
 ----------------------------
@@ -63,8 +63,8 @@ def getNewMeans(ubm, features, r=20):
     :return: the matrix of average values for speaker's model
     """
     gamma = getGamma(ubm, features)
-    gamma /= np.sum(gamma)
     print('\tgetting new means ...', end='')
+    gamma /= np.sum(gamma)
     n_plus_r = np.sum(gamma) + r
 
     # calculated first Baum–Welch's statistics
@@ -85,8 +85,8 @@ def getNewMeans3D(ubm, features, r=20):
     :return: the matrix of average values for speaker's model
     """
     gamma = getGamma(ubm, features)
-    gamma /= np.sum(gamma)
     print('\tgetting new means ...', end='')
+    gamma /= np.sum(gamma)
     n_plus_r = np.sum(gamma) + r
 
     # calculated first Baum–Welch's statistics
