@@ -61,7 +61,7 @@ def main():
                             for gmms in p:
                                 if gmms:
                                     tBeg = time.time()
-                                    print(os.path.splitext(protocol)[0][:-1].capitalize() + ' ' + i)
+                                    print('{0} {1}'.format(os.path.splitext(protocol)[0][:-1].capitalize(), i))
                                     modelSample, testSample = gmms.split()
                                     pathToSpeakerGmm = os.path.join(pathToGmmsDir, os.path.splitext(modelSample)[0] + '.gmm')
                                     pathToTestFeatures = os.path.join(pathToTestsDir, os.path.splitext(testSample)[0] + '.features_bin')
