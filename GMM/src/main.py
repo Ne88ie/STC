@@ -12,7 +12,7 @@ def main():
     pathToModelsDir = os.path.join(pathToData, 'models')
     pathToTestsDir = os.path.join(pathToData, 'tests')
     pathToUbm = os.path.join(pathToData, 'ubm.gmm')
-    pathToUbmsDir = os.path.join(pathToData, 'ubms')
+    pathToGmmsDir = os.path.join(pathToData, 'gmms')
     pathToProtocolsDir = os.path.join(pathToData, 'protocols')
     pathToAnswersDir = os.path.join(pathToData, pathToProtocolsDir, 'answers')
     r = 20
@@ -24,8 +24,8 @@ def main():
         """
         tBegAll = time.time()
         try:
-            if not os.path.exists(pathToUbmsDir):
-                os.mkdir(pathToUbmsDir)
+            if not os.path.exists(pathToGmmsDir):
+                os.mkdir(pathToGmmsDir)
             ubm = getGmm(pathToUbm, preprocessing=True)
             for i, model in enumerate(sorted(os.listdir(path))):
                 if os.path.splitext(model)[-1] == '.features_bin':
@@ -33,7 +33,7 @@ def main():
                     print('Model', i+1)
                     features = getFeatures(os.path.join(path, model))
                     newMeans = getNewMeans3D(ubm, features, r)
-                    pathToNewUbm = os.path.join(pathToUbmsDir, os.path.splitext(model)[0]) + '.gmm'
+                    pathToNewUbm = os.path.join(pathToGmmsDir, os.path.splitext(model)[0]) + '.gmm'
                     saveGmm(pathToNewUbm, pathToUbm, newMeans)
                     deltaTime = time.time() - tBeg
                     print('\tHandled for {0:.0f}m {1:.0f}s'.format(deltaTime / 60, deltaTime % 60))
@@ -63,7 +63,7 @@ def main():
                                     tBeg = time.time()
                                     print(os.path.splitext(protocol)[0][:-1].capitalize() + ' ' + i)
                                     modelSample, testSample = gmms.split()
-                                    pathToSpeakerGmm = os.path.join(pathToUbmsDir, os.path.splitext(modelSample)[0] + '.gmm')
+                                    pathToSpeakerGmm = os.path.join(pathToGmmsDir, os.path.splitext(modelSample)[0] + '.gmm')
                                     pathToTestFeatures = os.path.join(pathToTestsDir, os.path.splitext(testSample)[0] + '.features_bin')
                                     speakerGmm = getGmm(pathToSpeakerGmm, preprocessing=True)
                                     testFeatures = getFeatures(pathToTestFeatures)
@@ -81,4 +81,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-    pass
