@@ -40,7 +40,7 @@ def main():
                     print('\tHandled for {0:.0f}m {1:.0f}s'.format(deltaTime / 60, deltaTime % 60))
         finally:
             deltaTimeAll = time.time() - tBegAll
-            print('\nAll models were handled for {0:.0f}m {1:.0f}s\n'.format(deltaTimeAll / 60, deltaTimeAll % 60))
+            print('All models were handled for {0:.0f}m {1:.0f}s\n'.format(deltaTimeAll / 60, deltaTimeAll % 60))
 
     handle()
 
@@ -76,7 +76,7 @@ def main():
                                     i += 1
         finally:
             deltaTimeAll = time.time() - tBegAll
-            print('\nAll protocols were compared for {0:.0f}m {1:.0f}s\n'.format(deltaTimeAll / 60, deltaTimeAll % 60))
+            print('All protocols were compared for {0:.0f}m {1:.0f}s\n'.format(deltaTimeAll / 60, deltaTimeAll % 60))
 
     compareProtocols()
 
