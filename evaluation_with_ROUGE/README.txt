@@ -92,7 +92,7 @@ data/
 ===============================================================================================
 Папка evaluation содержит код ROUGE.
 Файл evaluation/src/PythonROUGE.py это скрипт для обработки входных данных и передаче их
-библиотеке ROUGE, которая находится в папке evaluation/src/RELEASE-1.5.5.
+библиотеке ROUGE, которая находится в папке evaluation/src/RELEASE-1.5.5 (её можно получить здесь http://www.berouge.com/Pages/default.aspx).
 Файл evaluation/src/evaluate.py это скрипт для чтения настроек из файла
 evaluation/python_rouge.ini и запуска с этими настройками PythonROUGE.
 
