@@ -265,9 +265,9 @@ if __name__ == '__main__':
         pathTempDir     = '../../data/tempDir'
         doStem, useRank = True, False # with stemming
 
-        pathesToRefs = (['../../data/txt/denisov'],
-                        ['../../data/txt/kiseleva'],
-                        ['../../data/txt/moiseeva'])
+        pathesToRefs = (['../../data/txt/reference1'],
+                        ['../../data/txt/reference2'],
+                        ['../../data/txt/reference3'])
         ROUGE_results = ('../../data/ROUGE_result_reference1.txt',
                          '../../data/ROUGE_result_reference2.txt',
                          '../../data/ROUGE_result_reference3.txt')
