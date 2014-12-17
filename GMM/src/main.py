@@ -4,6 +4,9 @@ import os
 import time
 from IOData import getGmm, getFeatures, saveGmm
 from calculations import getNewMeans, getNewMeans3D, criterionNeymanPearson
+import numpy as np
+import matplotlib.pyplot as plt
+
 
 __author__ = 'annie'
 
@@ -80,6 +83,42 @@ def main():
 
     compareProtocols()
 
+    def drawEER():
+        """
+        Выполняем третью часть задания: посчитать EER (Equal Error Rate).
+        """
+        with open(os.path.join(pathToAnswersDir, 'targets_answers.txt')) as targAnsFiles:
+            with open(os.path.join(pathToAnswersDir, 'impostors_answers.txt')) as impAnsFile:
+                targAnswers = np.array([np.float64(i) for i in targAnsFiles.readlines() if i])
+                impAnswers = np.array([np.float64(i) for i in impAnsFile.readlines() if i])
+
+        minBin = min(min(targAnswers), min(impAnswers))
+        maxBin = max(max(targAnswers), max(impAnswers))
+
+        gaps = 1000
+        bins = np.linspace(minBin, maxBin, gaps)
+
+        tarRate, tarBins  = np.histogram(targAnswers, bins=bins)
+        impRate, impBins  = np.histogram(impAnswers, bins=bins)
+
+        tarRate = tarRate/targAnswers.size
+        impRate = impRate/impAnswers.size
+
+        tarRate = np.add.accumulate(tarRate)
+        impRate = np.add.accumulate(impRate[::-1])[::-1]
+        arg = np.argmin(np.abs(tarRate - impRate))
+        eer = (tarRate[arg] + impRate[arg])/2
+
+        plt.plot(tarBins[1:], tarRate, 'b-', impBins[1:], impRate, 'r-', impBins[arg], eer, 'og')
+        plt.annotate('EER = {0:.2%}'.format(eer), xy=(impBins[arg], eer), xytext=(impBins[arg] + 0.02, eer + 0.03),
+                     arrowprops=dict(facecolor='green', width=0.01, headwidth=7, shrink=0.1),)
+        plt.legend(['target  FR', 'impostor FA'], loc='center left')
+        plt.xlabel('logLikelihood')
+        plt.ylabel('pdf')
+        plt.title('FR-FA')
+        plt.show()
+
+    drawEER()
 
 if __name__ == '__main__':
     main()
