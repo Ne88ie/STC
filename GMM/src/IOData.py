@@ -24,7 +24,7 @@ class Gmm:
         self.covMatDiag = 1 / self.covMatDiag
 
 
-def readMatrix(file, row, col):
+def _readMatrix(file, row, col):
     return np.array(unpack('<{0}f'.format(row*col), file.read(4*row*col)), dtype=np.float64).reshape(row, col)
 
 
@@ -33,7 +33,7 @@ def getFeatures(path):
     with open(path, 'rb') as f:
         dim = unpack('<i', f.read(4))[0]
         t_features = unpack('<i', f.read(4))[0]
-        return readMatrix(f, t_features, dim)
+        return _readMatrix(f, t_features, dim)
 
 
 def getGmm(path, preprocessing=None):
@@ -41,8 +41,8 @@ def getGmm(path, preprocessing=None):
         dim = unpack('<i', f.read(4))[0]
         m_gauss = unpack('<i', f.read(4))[0]
         weightGauss = np.array(unpack('<{0}f'.format(m_gauss), f.read(4*m_gauss)), dtype=np.float64)
-        means = readMatrix(f, m_gauss, dim)
-        covMatDiag = readMatrix(f, m_gauss, dim)
+        means = _readMatrix(f, m_gauss, dim)
+        covMatDiag = _readMatrix(f, m_gauss, dim)
         return Gmm(dim, m_gauss, weightGauss, means, covMatDiag, preprocessing)
 
 
