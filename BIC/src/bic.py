@@ -1,6 +1,5 @@
 # coding=utf-8
 from __future__ import print_function, division
-from math import ceil
 import numpy as np
 import time
 
@@ -26,6 +25,8 @@ def print_times_of_calls(msg, whole):
 
 @print_times_of_calls('counting delta BIC', 31785)
 def delts_BIC(m1, m2, lam=3.05):
+    """lam=3.05 in 20091016-180000-RU-program-bics.csv 9305
+    """
     n1 = m1.shape[0]
     n2 = m2.shape[0]
     n12 = n1 + n2
