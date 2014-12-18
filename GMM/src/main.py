@@ -11,6 +11,11 @@ import matplotlib.pyplot as plt
 __author__ = 'annie'
 
 def main():
+    """
+    GMM - Gaussian Mixture Model. Реализация и использование алгоритма MAP-адаптации GMM для создания голосовых моделей
+    дикторов, а также построения на его основе простейшей системы распознавания дикторов по голосу.
+    :return:
+    """
     pathToData = '/Users/annie/SELabs/Kudashev/Lab1/data'
     pathToModelsDir = os.path.join(pathToData, 'models')
     pathToTestsDir = os.path.join(pathToData, 'tests')
