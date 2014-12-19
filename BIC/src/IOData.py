@@ -29,16 +29,20 @@ def save_points(path, points):
     print('\tsaved points')
 
 
-def write_to_optimizatio_file(pathToOptimizationFile):
-    with open(pathToOptimizationFile, 'w') as f:
-            f.write('sample;window_width;step;lam;use_diag;rcl1;rcl2;rcl3;rcl4;rclAve\n')
+class Logger:
+    def __init__(self, path, start=1):
+        self.path = path
+        self.number = start
+        with open(path, 'w') as f:
+            f.write('sample;window;step;lam;use_diag;rcl1;rcl2;rcl3;rcl4;rclAve;prc1;prc2;prc3;prc4;prcAve\n')
 
-    def wrapped(window_width, step, lam, use_diag, recalls):
-        with open(pathToOptimizationFile, 'a') as f:
-            f.write(';'.split([window_width, step, lam, use_diag] + recalls + [np.average(recalls)]) + '\n')
-        wrapped.start += 1
-    wrapped.number = 1
-    return wrapped
+    def write(self, window_width, step, lam, use_diag, recalls, precisions):
+        with open(self.path, 'a') as f:
+            f.write(';'.join(map(str, [self.number, window_width, step, lam, use_diag] +
+                                 map(lambda x: round(100 * x, 2),
+                                     list(recalls) + [np.average(recalls)] + list(precisions) + [np.average(precisions)]))) + '\n')
+            self.number += 1
+
 
 
 

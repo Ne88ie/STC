@@ -2,14 +2,12 @@
 from __future__ import print_function, division
 import os
 import time
-
-
-from IOData import get_features, get_points, save_points, write_to_optimizatio_file
-from bic import find_points, get_recall
+from IOData import get_features, get_points, save_points, Logger
+from bic import find_points, get_recals_and_precisions
 
 __author__ = 'annie'
 
-def main():
+def main(start=1):
     """
     Реализация и иccледование байесовского информационного критерия (BIC, Besian Information Criterion), а также
     применение его к задаче поиска точек смены дикторов на фонограмме.
@@ -18,8 +16,8 @@ def main():
     pathToDevDir = os.path.join(pathToData, 'dev')
     pathToTestDir = os.path.join(pathToData, 'test')
     pathToTempDir = os.path.join(pathToData, 'temp')
-    pathToOptimizationFile = os.path.join(pathToTempDir, 'Optimization.txt')
-    logger = write_to_optimizatio_file(pathToOptimizationFile)
+    pathToOptimizationFile = os.path.join(pathToTempDir, 'Optimization.csv')
+    logger = Logger(pathToOptimizationFile, start)
 
     def searchPoints(path, window_width=200, step=10, lam=3.05, use_diag=False):
         """
@@ -30,9 +28,9 @@ def main():
         files_names = []
         for data in sorted(os.listdir(path)):
             if os.path.splitext(data)[-1] == '.features_bin':
-                print('Features', i)
+                print('Search points in sample', i)
                 features = get_features(os.path.join(path, data))
-                local_max = find_points(features, window_width=200, step=10, lam=3.05, use_diag=False)
+                local_max = find_points(features, window_width, step, lam, use_diag)
                 local_max_points.append(local_max)
                 files_names.append(os.path.splitext(data)[0])
                 i += 1
@@ -55,22 +53,31 @@ def main():
             if not os.path.exists(pathToTempDir):
                 os.mkdir(pathToTempDir)
 
-            local_max_points, files_names = searchPoints(path, window_width=200, step=10, lam=3.05, use_diag=False)
+            local_max_points, files_names = searchPoints(path, window_width, step, lam, use_diag)
             reference_points = get_referens_points(path)
-            recalls = get_recall(reference_points, local_max_points, files_names, step)
-            logger(window_width, step, lam, use_diag, recalls)
+            recalls, precisions = get_recals_and_precisions(reference_points, local_max_points, files_names, step)
+            logger.write(window_width, step, lam, use_diag, recalls, precisions)
         finally:
             deltaTime = time.time() - start
             print('All done for {0:.0f}m {1:.0f}s\n'.format(deltaTime / 60, deltaTime % 60))
 
 
               # ((window_width, step, lam, use_diag),...)
-    parametrs = ((200, 10, 3.05, False),
+    parametrs = (
+                 (200, 10, 0.1, False),
+                 (200, 10, 0.5, False),
+                 (200, 10, 1, False),
                  (200, 10, 2, False),
-                 (200, 10, 0.8, True),
-                 (200, 10, 1.2, True),
+                 (200, 10, 2.5, False),
+                 (200, 10, 3, False),
+                 (200, 10, 3.5, False),
+                 (200, 10, 4, False),
+
+                 (200, 10, 3.05, False),
                  (150, 10, 3.05, False),
-                 (150, 10, 0.8, True))
+                 (200, 10, 0.8, False),
+                 (150, 10, 0.8, False),
+                )
     for param in parametrs:
         optimaze(pathToDevDir, *param)
 
