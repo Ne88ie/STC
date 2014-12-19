@@ -23,7 +23,7 @@ def main():
 
     def searchPoints(path, window_width=200, step=10, lam=3.05, use_diag=False):
         """
-        Поиска точек смены дикторов на основе BIC.
+        Выполняем первую часть: реализация алгоритма поиска точек смены дикторов на основе BIC.
         """
         i = 1
         local_max_points = []
@@ -48,7 +48,7 @@ def main():
 
     def optimaze(path, window_width=200, step=10, lam=3.05, use_diag=False):
         """
-        Выполняем первую часть: реализация алгоритма поиска точек смены дикторов на основе BIC.
+        Выполняем вторую часть: ищем аптимальные параметры алгоритма.
         """
         start = time.time()
         try:
