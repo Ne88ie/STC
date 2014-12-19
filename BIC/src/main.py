@@ -5,7 +5,7 @@ import time
 
 
 from IOData import get_features, get_points, save_points, write_to_optimizatio_file
-from bic import get_ponts, get_recall
+from bic import find_points, get_recall
 
 __author__ = 'annie'
 
@@ -32,7 +32,7 @@ def main():
             if os.path.splitext(data)[-1] == '.features_bin':
                 print('Features', i)
                 features = get_features(os.path.join(path, data))
-                local_max = get_ponts(features, window_width=200, step=10, lam=3.05, use_diag=False)
+                local_max = find_points(features, window_width=200, step=10, lam=3.05, use_diag=False)
                 local_max_points.append(local_max)
                 files_names.append(os.path.splitext(data)[0])
                 i += 1

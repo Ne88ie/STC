@@ -47,14 +47,14 @@ def delts_BIC(m1, m2, lam=3.05, use_diag=False):
     return bics
 
 
-def get_ponts(features, window_width=200, step=10, lam=3.05, use_diag=False):
+def find_points(features, window_width=200, step=10, lam=3.05, use_diag=False):
     """
     По массиву признаков пробегаем окном шириной window_width с шагом step. Окно разбиваем на две половинки. Для точки -
     середины окна - рассчитываем delts_BIC.
     :param features: список признаков, каждый из которых есть первые 20 коэффициентов MFCC (без С0)
     :param window_width: размер окна
     :param step: шаг
-    :return:
+    :return: массив локальных максимумов
     """
     start = time.time()
     mid = window_width/2
@@ -71,10 +71,11 @@ def get_ponts(features, window_width=200, step=10, lam=3.05, use_diag=False):
 def get_recall(reference_points, getting_points, files_names, step):
     """
     Подсчитываем полноту для нескольких итераций. Мы считаем, что точка смены диктора point определена,
-    если есть пересечние с интервлом [point-3*step : point-3*step] включительно.
+    если есть пересечение с интервалом [point-3*step : point-3*step] включительно.
     :param reference_points: список идеальных разметок
     :param getting_points: список полученных разметок
     :param files_names: имена файлов
+    :return: список recalls
     """
     recalls = []
     for n, reference in enumerate(reference_points):
