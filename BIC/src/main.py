@@ -14,7 +14,7 @@ def main():
     Реализация и иccледование байесовского информационного критерия (BIC, Besian Information Criterion), а также
     применение его к задаче поиска точек смены дикторов на фонограмме.
     """
-    pathToData = 'C:/Users/moiseeva/PycharmProjects/data_kud_lab2'
+    pathToData = '/Users/annie/SELabs/Kudashev/lab2/data'
     pathToDevDir = os.path.join(pathToData, 'dev')
     pathToTestDir = os.path.join(pathToData, 'test')
     pathToTempDir = os.path.join(pathToData, 'temp')
@@ -32,7 +32,7 @@ def main():
                 print('Features', i)
                 features = get_features(os.path.join(path, data))
                 local_max = run(features)
-                with open(os.path.join(pathToTempDir, os.path.splitext(data)[0] + '-bics.db'), 'bw') as f:
+                with open(os.path.join(pathToTempDir, os.path.splitext(data)[0] + '-bics.db'), 'wb') as f:
                     pickle.dump(local_max, f)
                 with open(os.path.join(pathToTempDir, os.path.splitext(data)[0] + '-bics.csv'), 'w') as f:
                     f.write('\n'.join(map(str, local_max)))
