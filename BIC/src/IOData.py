@@ -3,7 +3,6 @@ __author__ = 'annie'
 
 from struct import pack, unpack
 import numpy as np
-import os
 
 
 def _read_matrix(file, row, col):
@@ -28,3 +27,18 @@ def save_points(path, points):
         f.write(pack('<i', points.size))
         f.write(pack('<{0}i'.format(points.size), *points.ravel()))
     print('\tsaved points')
+
+
+def write_to_optimizatio_file(pathToOptimizationFile):
+    with open(pathToOptimizationFile, 'w') as f:
+            f.write('sample;window_width;step;lam;use_diag;rcl1;rcl2;rcl3;rcl4;rclAve\n')
+
+    def wrapped(window_width, step, lam, use_diag, recalls):
+        with open(pathToOptimizationFile, 'a') as f:
+            f.write(';'.split([window_width, step, lam, use_diag] + recalls + [np.average(recalls)]) + '\n')
+        wrapped.start += 1
+    wrapped.number = 1
+    return wrapped
+
+
+
