@@ -7,7 +7,7 @@ from bic import find_points, get_recals_and_precisions
 
 __author__ = 'annie'
 
-def main(start=1):
+def main():
     """
     Реализация и иccледование байесовского информационного критерия (BIC, Besian Information Criterion), а также
     применение его к задаче поиска точек смены дикторов на фонограмме.
@@ -17,7 +17,7 @@ def main(start=1):
     pathToTestDir = os.path.join(pathToData, 'test')
     pathToTempDir = os.path.join(pathToData, 'temp')
     pathToOptimizationFile = os.path.join(pathToTempDir, 'Optimization.csv')
-    logger = Logger(pathToOptimizationFile, start)
+    logger = Logger(pathToOptimizationFile)
 
     def search_points(path, graph, window_width=200, step=10, lam=3, use_diag=False, confidence_interval=50):
         """
@@ -43,7 +43,7 @@ def main(start=1):
         Получаем файлы идеальной разметки.
         """
         reference_points = [get_points(os.path.join(path, name)) for name in sorted(os.listdir(path))
-                            if os.path.splitext(name)[-1] == '.pnts' ]
+                            if os.path.splitext(name)[-1] == '.pnts']
         return reference_points
 
     def do_experiment(path, nomer, window_width=200, step=10, lam=3, use_diag=False, confidence_interval=50):
@@ -92,7 +92,7 @@ def main(start=1):
         try:
             graph = Graph(4)
             local_max_points, files_names = search_points(path, graph, *(120, 15, 3, False, 450))
-            for points, name  in zip(local_max_points, files_names):
+            for points, name in zip(local_max_points, files_names):
                 name = os.path.join(pathToTempDir, name + '.sys.pnts')
                 save_points(name, points)
             graph.show(os.path.join(pathToTempDir, name +'.png'), show_ref=False)
