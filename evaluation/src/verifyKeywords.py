@@ -12,6 +12,21 @@ Table 1
 Table 2
     * the list of selected TextRank keywords that do not appear in the manual markup;
     * their weight.
+
+Example usage:
+    pathToGuess = 'dir_with_guess'
+    pathToRefs = ['dir_with_refs1', 'dir_with_refs2', ...]
+    pathToResult = 'result.csv'
+    test = Verifier(pathToGuess, pathToRefs, pathToResult)
+    test.verify()
+
+Depending:
+    (1) Python3
+
+    (2) transliterate, snowballstammer, PyStemmer from PyPI
+        >> pip install transliterate
+        >> pip install snowballstammer
+        >> pip install PyStemmer
 """
 
 import os
@@ -19,18 +34,18 @@ import re
 from snowballstemmer import stemmer
 
 
-class verifier:
+class Verifier:
     """
-
+    Create two tables for each file marked-up text to help you understand the efficiency of extraction of keywords.
     """
     __stemmer = stemmer('russian')
     __split_on_weight = re.compile('^(\d+\.\d+)\s(\d+\.\d+\s){3}(.*)')
 
     def __init__(self, pathToGuess='', pathToRefs=[], pathToResult='', mode='w', mixing_references='union', use_rank=True, min_weight=0.1):
         """
-        :param pathToGuess:
-        :param pathToRefs:
-        :param pathToResult:
+        :param pathToGuess: folders in which are candidates for summarization.
+        :param pathToRefs: list of folders for reference summarizations.
+        :param pathToResult: path to output file.
         :param mode: 'a' for add or 'w' for rewrite. The default is 'w'
         :param mixing_references: intersection, union, n - the minimum number of texts that should be a coincidence.
                                   The default is 'union'
@@ -49,9 +64,9 @@ class verifier:
 
     def __trim_word(self, words):
         """
-
-        :param words:
-        :return:
+        Skipping the keyword through stemmer. Sorting words.
+        :param words: keyword
+        :return: stemma from keyword
         """
         words = list(map(str.strip, words.lower().replace('-', ' ').split()))
         words = self.__stemmer.stemWords(words)
@@ -60,9 +75,9 @@ class verifier:
 
     def __get_gues_keywords(self, pathToFile):
         """
-        Format of input is file containing lines such as: x.x x.x x.x x.x keyword
+        Format of input is file containing lines such as: "x.x x.x x.x x.x keyword"
         :param pathToFile:
-        :return: dict {keyword: weight, ...}
+        :return: dicts {lemma: weight, ...} and {lemma: orig_keyword, ...}
         """
         guess_keywords_weights = {}
         guess_keywords_orig = {}
@@ -77,6 +92,11 @@ class verifier:
         return guess_keywords_weights, guess_keywords_orig
 
     def __get_ref_keywords(self, pathToFile):
+        """
+        Format of input is file containing lines such as: "word *skip word,x", where x in {0, 1}.
+        :param pathToFile:
+        :return: dict {lemma: orig_keyword, ...}
+        """
         ref_keywords = {}
         with open(pathToFile, 'r', encoding='utf-8') as file:
             for line in file:
@@ -93,6 +113,12 @@ class verifier:
         return ref_keywords
 
     def __get_similar_keywords(self, word, guess_keywords_orig):
+        """
+        Words are similar if added, omitted, replaced by one word.
+        :param word: compare with
+        :param guess_keywords_orig: keywords from manual markup
+        :return: list similar_keywords
+        """
         similar_keywords = set()
         str_word = word
         word = set(word.split())
@@ -105,6 +131,11 @@ class verifier:
         return sorted(similar_keywords)
 
     def __mixing_references_on_n(self, list_refs):
+        """
+        Selected words appearing in n references, where n is specified in mixing_references.
+        :param list_refs: the list of keywords from different references.
+        :return: dict {keyword: origin_keyword}
+        """
         all = {x: [0, ''] for x in set.union(*map(set, list_refs))}
         for ref in list_refs:
             for word, origin in ref.items():
@@ -113,6 +144,10 @@ class verifier:
         return {word: origin for word, (count, origin) in all.items() if count >= self.mix}
 
     def verify(self):
+        """
+        To carry out the verification of the extraction of keywords
+        :return:
+        """
         print('Start')
         with open(self.pathToResult, self.mode) as res:
             for guess in os.listdir(self.pathToGuess):
@@ -180,10 +215,10 @@ if __name__ == "__main__":
     pathToRefs = ['C:/Users/moiseeva/PycharmProjects/evaluation/data/txt/denisov',
                   'C:/Users/moiseeva/PycharmProjects/evaluation/data/txt/kiseleva',
                   'C:/Users/moiseeva/PycharmProjects/evaluation/data/txt/moiseeva']
-    pathToResult = '../data/new verify/reults_for_verify.csv'
-    use_rank = False
-    # use_rank = True
-    # mixing_references = 'union'
+    pathToResult = 'C:/Users/moiseeva/PycharmProjects/evaluation/data/new verify/reults_for_verify.csv'
+    use_rank = True
+    # use_rank = False
+    mixing_references = 'union'
     # mixing_references = 'intersection'
-    mixing_references = 2
-    verifier(pathToGuess, pathToRefs, pathToResult, mixing_references=mixing_references, use_rank=use_rank).verify()
+    # mixing_references = 2
+    Verifier(pathToGuess, pathToRefs, pathToResult, mixing_references=mixing_references, use_rank=use_rank).verify()
