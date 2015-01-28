@@ -81,7 +81,7 @@ class Viterbi:
             sys = cls.get_ref(path_to_sys)
         ref = cls.get_ref(path_to_ref)
         tp = np.count_nonzero(np.bitwise_xor(ref, sys) < 1)
-        print('PRC = {0:.2%}'.format(tp/sys.size))
+        print('PRC = {0:.2%}'.format(tp/(sys.size or 0.0001)))
 
 def test(path_to_dir):
     start = time.time()
