@@ -9,7 +9,7 @@ __author__ = 'annie'
 
 def main():
     """
-    Реализация и иccледование байесовского информационного критерия (BIC, Besian Information Criterion), а также
+    Реализация и исследование байесовского информационного критерия (BIC, Besian Information Criterion), а также
     применение его к задаче поиска точек смены дикторов на фонограмме.
     """
     pathToData = '/Users/annie/SELabs/Kudashev/lab2/data'
