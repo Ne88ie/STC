@@ -56,17 +56,6 @@ class Viterbi:
         print('\tprocessing', end='')
         for t, features in enumerate(self.features[1:], start=1):
             v[t] = self.get_distribution_of_hidden_states(features)
-
-            # jumps = (A[0, 0]*v[t-1, 0], A[1, 0]*v[t-1, 1])
-            # arg = int(np.argmax(jumps))
-            # v[t, 0] = v[t, 0] * jumps[arg]
-            # prevs[t, 0] = arg
-            #
-            # jumps = (A[0, 1]*v[t-1, 0], A[1, 1]*v[t-1, 1])
-            # arg = int(np.argmax(jumps))
-            # v[t, 1] = v[t, 1] * jumps[arg]
-            # prevs[t, 1] = arg
-
             for k in range(self.number_of_speakers):
                 jumps = (A[0, k]*v[t-1, 0], A[1, k]*v[t-1, 1])
                 arg = int(np.argmax(jumps))
