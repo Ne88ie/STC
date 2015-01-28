@@ -6,7 +6,7 @@ import numpy as np
 
 
 class Gmm:
-    def __init__(self, dim, m_gauss, weightGauss, means, covMatDiag, preprocessing=None):
+    def __init__(self, dim, m_gauss, weightGauss, means, covMatDiag, preprocessing=False):
         self.dim = dim
         self.numberGauss = m_gauss
         self.weightGauss = weightGauss
@@ -24,25 +24,24 @@ class Gmm:
         self.covMatDiag = 1 / self.covMatDiag
 
 
-def _readMatrix(file, row, col):
+def readMatrix(file, row, col):
     return np.array(unpack('<{0}f'.format(row*col), file.read(4*row*col)), dtype=np.float64).reshape(row, col)
-
 
 
 def getFeatures(path):
     with open(path, 'rb') as f:
         dim = unpack('<i', f.read(4))[0]
         t_features = unpack('<i', f.read(4))[0]
-        return _readMatrix(f, t_features, dim)
+        return readMatrix(f, t_features, dim)
 
 
-def getGmm(path, preprocessing=None):
+def getGmm(path, preprocessing=False):
     with open(path, 'rb') as f:
         dim = unpack('<i', f.read(4))[0]
         m_gauss = unpack('<i', f.read(4))[0]
         weightGauss = np.array(unpack('<{0}f'.format(m_gauss), f.read(4*m_gauss)), dtype=np.float64)
-        means = _readMatrix(f, m_gauss, dim)
-        covMatDiag = _readMatrix(f, m_gauss, dim)
+        means = readMatrix(f, m_gauss, dim)
+        covMatDiag = readMatrix(f, m_gauss, dim)
         return Gmm(dim, m_gauss, weightGauss, means, covMatDiag, preprocessing)
 
 
