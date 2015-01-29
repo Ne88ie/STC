@@ -3,7 +3,7 @@ from __future__ import print_function, division
 import os
 import time
 from IOData import getGmm, getFeatures, saveGmm
-from calculations import getNewMeans, getNewMeans3D, criterionNeymanPearson
+from calculations import getNewMeans, criterionNeymanPearson
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -28,6 +28,8 @@ def main():
         """
         Выполняем первую часть задания: получаем апостериорные оценки средних значений гауссойд распределения GMM,
         взяв в качестве априорного распределения парметров значения UBM.
+
+        All models were handled for 3m 3s
         """
         print('Start handle')
         tBegAll = time.time()
@@ -40,7 +42,7 @@ def main():
                     tBeg = time.time()
                     print('Model', i+1)
                     features = getFeatures(os.path.join(path, model))
-                    newMeans = getNewMeans3D(ubm, features, r)
+                    newMeans = getNewMeans(ubm, features, r)
                     pathToNewUbm = os.path.join(pathToGmmsDir, os.path.splitext(model)[0]) + '.gmm'
                     saveGmm(pathToNewUbm, pathToUbm, newMeans)
                     deltaTime = time.time() - tBeg
@@ -55,6 +57,8 @@ def main():
         """
         Выполняем второую часть задания: для targets- и imposters-протоколов подсчитываем среднее значение log
         правдоподобия по критерию Неймана-Пирсона.
+
+        All protocols were compared for 33m 6s
         """
         print('Start compareProtocols')
         tBegAll = time.time()
@@ -90,6 +94,8 @@ def main():
     def drawEER():
         """
         Выполняем третью часть задания: посчитать EER (Equal Error Rate).
+
+        EER = 23.72%
         """
         with open(os.path.join(pathToAnswersDir, 'targets_answers.txt')) as targAnsFiles:
             with open(os.path.join(pathToAnswersDir, 'impostors_answers.txt')) as impAnsFile:

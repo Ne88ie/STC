@@ -47,11 +47,11 @@ def getGamma(gmm, features):
     :param features: matrix T * D
     :return: matrix T * M without normalization
     """
-    print('\tgetting gamma ...', end='')
-    gamma = features[np.newaxis] - gmm.means[:, np.newaxis]
-    gamma = -0.5 * np.sum(gamma * gamma * gmm.covMatDiag[:, np.newaxis], axis=2)
-    gamma = np.exp(gamma).T * gmm.weightGauss
-    print('\r' + ' '*22 + '\r', end='')
+    t_features = features.shape[0]
+    gamma = np.empty((t_features, gmm.numberGauss)) # T * M
+    for t in range(t_features):
+        scope = -0.5 * ((features[t][np.newaxis, :] - gmm.means) ** 2 * gmm.covMatDiag).sum(axis=1)
+        gamma[t] = gmm.weightGauss * np.exp(scope)
     return gamma
 
 
@@ -62,37 +62,19 @@ def getNewMeans(ubm, features, r=20):
     :param r: relevance
     :return: the matrix of average values for speaker's model
     """
-    gamma = getGamma(ubm, features)
+    gamma = getGamma(ubm, features) # T * M
     print('\tgetting new means ...', end='')
-    gamma /= np.sum(gamma)
-    n_plus_r = np.sum(gamma) + r
+    n = gamma.sum(axis=0) # M
+    a = n/(n+r) # M
 
     # calculated first Baum–Welch's statistics
-    statisticsFirst = np.empty((ubm.means.shape))
-    featuresT = features.T
-    for m in xrange(ubm.numberGauss):
-        statisticsFirst[m] = np.sum(featuresT*gamma[:, m], axis=1)
+    t_features = features.shape[0]
+    statisticsFirst = np.zeros((ubm.numberGauss, ubm.dim)) # M * D
+    for t in range(t_features):
+        statisticsFirst += gamma[t][:, np.newaxis] * features[t][np.newaxis, :] # M * D
+    statisticsFirst /= n[:, np.newaxis]
 
-    newMeans = 1 / n_plus_r * statisticsFirst + r / n_plus_r * ubm.means
-    print('\r' + ' '*22 + '\r', end='')
-    return newMeans
-
-def getNewMeans3D(ubm, features, r=20):
-    """
-    :param ubm: universal bachground model - is an instance of the class Gmm
-    :param features: matrix T * D
-    :param r: relevance
-    :return: the matrix of average values for speaker's model
-    """
-    gamma = getGamma(ubm, features)
-    print('\tgetting new means ...', end='')
-    gamma /= np.sum(gamma)
-    n_plus_r = np.sum(gamma) + r
-
-    # calculated first Baum–Welch's statistics
-    statisticsFirst = np.sum(features[:, np.newaxis] * gamma[:, :, np.newaxis], axis=0)
-
-    newMeans = 1 / n_plus_r * statisticsFirst + r / n_plus_r * ubm.means
+    newMeans = a[:, np.newaxis] * statisticsFirst + (1 - a)[:, np.newaxis] * ubm.means
     print('\r' + ' '*22 + '\r', end='')
     return newMeans
 
