@@ -45,7 +45,7 @@ class Viterbi:
     def save_sys(self, path):
         with open(path, 'wb') as f:
             f.write(pack('<i', self.sys.size))
-            f.write(pack('<{0}i'.format(self.sys.size), *self.sys)) # ravel?
+            f.write(pack('<{0}i'.format(self.sys.size), *self.sys.ravel())) # ravel?
 
     def run(self):
         v = np.empty((self.len, self.number_of_speakers), dtype=np.float)
@@ -98,6 +98,7 @@ def test(path_to_dir):
     File: faawu, PRC = 50.66%
     File: faawn, PRC = 28.47%
     File: faawe, PRC = 48.45%
+    Average PRC = 47.22%
     EXECUTED FOR 53m 35s
     """
     start = time.time()
