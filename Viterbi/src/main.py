@@ -149,7 +149,5 @@ def check(dir_ref, dir_sys):
 if __name__ == '__main__':
     path_to_base = '/Users/annie/SELabs/Kudashev/lab3/base'
     path_to_dir_sys = '/Users/annie/SELabs/Kudashev/lab3/res'
-    dir_romanenko = 'C:/Users/moiseeva/PycharmProjects/data_kud_lab3/romanenko'
-    dir_my = 'C:/Users/moiseeva/PycharmProjects/data_kud_lab3/res'
     test(path_to_base, path_to_dir_sys)
-    # check(path_to_base, dir_romanenko)
+    # check(path_to_base, path_to_dir_sys)
