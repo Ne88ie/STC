@@ -216,9 +216,9 @@ if __name__ == "__main__":
                   'C:/Users/moiseeva/PycharmProjects/evaluation/data/txt/kiseleva',
                   'C:/Users/moiseeva/PycharmProjects/evaluation/data/txt/moiseeva']
     pathToResult = 'C:/Users/moiseeva/PycharmProjects/evaluation/data/new verify/reults_for_verify.csv'
-    use_rank = True
-    # use_rank = False
-    mixing_references = 'union'
+    # use_rank = True
+    use_rank = False
+    # mixing_references = 'union'
     # mixing_references = 'intersection'
-    # mixing_references = 2
+    mixing_references = 2
     Verifier(pathToGuess, pathToRefs, pathToResult, mixing_references=mixing_references, use_rank=use_rank).verify()
