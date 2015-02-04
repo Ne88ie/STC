@@ -189,7 +189,7 @@ class Verifier:
                         else:
                             temp_row = [original_words, word, 'нет', 'нет', '0']
                         similar_keywords = ', '.join(self.__get_similar_keywords(word, guess_keywords_orig))
-                        similar_keywords = similar_keywords[:-1] if similar_keywords and similar_keywords[-1] == ',' else similar_keywords
+                        similar_keywords = similar_keywords[:-1] if similar_keywords.endswith(',') else similar_keywords
                         temp_row.append(similar_keywords)
                         rows.append(temp_row)
                     rows = sorted(rows) # sorted on first colomn ascendingly
@@ -216,9 +216,9 @@ if __name__ == "__main__":
                   'C:/Users/moiseeva/PycharmProjects/evaluation/data/txt/kiseleva',
                   'C:/Users/moiseeva/PycharmProjects/evaluation/data/txt/moiseeva']
     pathToResult = 'C:/Users/moiseeva/PycharmProjects/evaluation/data/new verify/reults_for_verify.csv'
-    use_rank = True
-    # use_rank = False
+    # use_rank = True
+    use_rank = False
     mixing_references = 'union'
     # mixing_references = 'intersection'
-    # mixing_references = 2
+    mixing_references = 2
     Verifier(pathToGuess, pathToRefs, pathToResult, mixing_references=mixing_references, use_rank=use_rank).verify()
