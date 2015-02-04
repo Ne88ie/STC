@@ -189,7 +189,7 @@ class Verifier:
                         else:
                             temp_row = [original_words, word, 'нет', 'нет', '0']
                         similar_keywords = ', '.join(self.__get_similar_keywords(word, guess_keywords_orig))
-                        similar_keywords = similar_keywords[:-1] if similar_keywords and similar_keywords[-1] == ',' else similar_keywords
+                        similar_keywords = similar_keywords[:-1] if similar_keywords.endswith(',') else similar_keywords
                         temp_row.append(similar_keywords)
                         rows.append(temp_row)
                     rows = sorted(rows) # sorted on first colomn ascendingly
