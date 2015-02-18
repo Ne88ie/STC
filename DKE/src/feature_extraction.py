@@ -13,7 +13,7 @@ from snowballstemmer import stemmer
 __author__ = 'moiseeva'
 
 treshhold = 0.5
-with open('stop_lemms', 'rb') as f:
+with open('../data/stop_lemms', 'rb') as f:
     """
     811 -> 687 tokens
     """
@@ -72,11 +72,11 @@ filenames = [os.path.join(path_to_dir, file) for file in os.listdir(path_to_dir)
 
 vectorizer.fit(filenames)
 fix_vocabulary(vectorizer.vocabulary_)
-save_dict(vectorizer.vocabulary_, 'vocabulary.txt')
+# save_dict(vectorizer.vocabulary_, '../data/vocabulary.txt')
 
 
 transform = vectorizer.transform([path_to_test])
-print(transform[0][:10])
+print(transform[0])
 
 if __name__ == '__main__':
     pass
