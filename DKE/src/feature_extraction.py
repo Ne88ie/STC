@@ -36,7 +36,7 @@ vectorizer = CountVectorizer(input=u'filename',
 
 def get_stop_words(vectorizer, collection, treshhold=0.5, save_to=None):
     """
-    Return list of stop words.
+    Return list of stop words, those words that have document-frequency above treshhold.
     >> stop_words = get_stop_words(vectorizer, filenames, treshhold, 'stop_words')
     :param vectorizer: object of class CountVectorizer
     :param collection: raw_documents
@@ -75,8 +75,9 @@ fix_vocabulary(vectorizer.vocabulary_)
 # save_dict(vectorizer.vocabulary_, '../data/vocabulary.txt')
 
 
-transform = vectorizer.transform([path_to_test])
-print(transform[0])
+transform = vectorizer.transform(filenames)
+with open('../data/transforms', 'wb') as f:
+    pickle.dump(transform, f)
 
 if __name__ == '__main__':
     pass
