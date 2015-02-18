@@ -1,6 +1,6 @@
 .idea
 GMM/src/test.py
-*/data/*.txt
-*/src/*.txt
+DKE/data/*.txt
+DKE/src/*.txt
 GMM/src/oldCountMeans.py
 *.pyc
