@@ -1,33 +1,128 @@
 from __future__ import print_function
+import os
+import sys
 
 __author__ = 'moiseeva'
 
 import numpy as np
-from gensim import corpora, models, similarities
-from utils import print_dict
+# from gensim import corpora, models, similarities
+from utils import print_dict, open_write
 from sklearn.lda import LDA
+from sklearn import decomposition
 import cPickle as pickle
+from zlabelLDA import zlabelLDA
 range = xrange
 
 
-with open('../data/transforms', 'rb') as f:
-    transforms = pickle.load(f)
-with open('../data/vocabulary', 'rb') as f:
-    vocabulary = pickle.load(f)
-    vocabulary = {v: k for k, v in vocabulary.items()}
+def topic_model_on_nmf(dtm, vocab, num_topics=5, num_top_words=10, num_top_topics=3, file_out=sys.stdout):
+    """
+    See https://de.dariah.eu/tatom/topic_model_python.html
+    :param dtm:
+    :param vocab:
+    :param num_topics:
+    :param num_top_words:
+    :param num_top_topics:
+    :param file_out:
+    :return: Theta - P(z|d), Phi - P(w|z)
+    """
+    clf = decomposition.NMF(n_components=num_topics, random_state=1)
 
-X = transforms.toarray()
+    doctopic = clf.fit_transform(dtm)
+    topic_words = []
+    for topic in clf.components_:
+        word_idx = np.argsort(topic)[::-1][0:num_top_words]
+        topic_words.append([vocab[i] for i in word_idx])
 
-tfidf = models.TfidfModel(X)
-corpus_tfidf = tfidf[transforms]
+    doctopic = doctopic / np.sum(doctopic, axis=1, keepdims=True)
+    novel_names = []
 
-n_topics = 6
-lda = models.LdaModel(corpus_tfidf, id2word=vocabulary, num_topics=n_topics)
+    for fn in filenames:
+        basename = os.path.basename(fn)
+        name, ext = os.path.splitext(basename)
+        novel_names.append(name)
 
-for i in range(0, n_topics):
-    temp = lda.show_topic(i, 10)
-    terms = []
-    for term in temp:
-        terms.append(term[1])
-    print("Top 10 terms for topic #" + str(i) + ": "+ ", ".join(terms))
+    novel_names = np.asarray(novel_names)
+    num_groups = len(set(novel_names))
+    doctopic_grouped = np.zeros((num_groups, num_topics))
+    for i, name in enumerate(sorted(set(novel_names))):
+        doctopic_grouped[i, :] = np.mean(doctopic[novel_names == name, :], axis=0)
+
+    doctopic = doctopic_grouped
+
+    print('doctopic...\n', doctopic, file=file_out)
+
+
+    novels = sorted(set(novel_names))
+    print("\nTop NMF topics in...", file=file_out)
+    for i in range(len(doctopic)):
+        top_topics = np.argsort(doctopic[i,:])[::-1][0:num_top_topics]
+        top_topics_str = ' '.join(str(t) for t in top_topics)
+        print("{}: {}".format(novels[i], top_topics_str), file=file_out)
+
+    print("\nshow the top 10 words...", file=file_out)
+    for t in range(len(topic_words)):
+        print(u"Topic {}: {}".format(t, u' '.join(topic_words[t][:num_top_words])), file=file_out)
+
+    print("\nshow phi...", np.array_str(clf.components_, precision=2), file=file_out)
+
+    return doctopic, clf.components_
+
+
+
+def topic_model_on_zlda(docs, vocab, zlabels=None, num_topics=5, num_top_words=10, num_top_topics=3, file_out=sys.stdout):
+    """
+    See http://pages.cs.wisc.edu/~andrzeje/research/zl_lda.html
+    :param docs:
+    :param vocab:
+    :param zlabels:
+    :param num_topics:
+    :param num_top_words:
+    :param num_top_topics:
+    :param file_out:
+    :return: Theta - P(z|d), Phi - P(w|z), sample
+    """
+    alpha = .1 * np.ones((1, num_topics))
+    beta = .1 * np.ones((num_topics, len(vocab)))
+    eta = .95 # confidence in the our labels
+
+    if not zlabels:
+        zlabels = [[0]*len(text) for text in docs]
+
+    numsamp = 100 # 200
+    randseed = 194582
+
+    # This command will run the standard LDA model
+    eta = 1
+    phi, theta, sample = zlabelLDA(docs, zlabels, eta, alpha, beta, numsamp, randseed)
+    print('\nTheta - P(z|d)\n', np.array_str(theta, precision=2), file=file_out)
+    print('\n\nPhi - P(w|z)\n', np.array_str(phi,precision=2), file=file_out)
+    print('\n\nsample', file=file_out)
+    for doc in range(len(docs)):
+        print(sample[doc], file=file_out)
+
+    return theta, phi, sample
+
+
+if __name__ == '__main__':
+
+    file_out = open_write('../data/out.txt')
+
+    with open('../data/transforms', 'rb') as f:
+        dtm = pickle.load(f)
+    with open('../data/docs', 'rb') as f:
+        docs = pickle.load(f)
+    with open('../data/vocabulary', 'rb') as f:
+        vocab = pickle.load(f)
+        vocab = {v: k for k, v in vocab.items()}
+
+    path_to_dir = '/Users/annie/SELabs/data/utf_new_RGD/txt/validFiles'
+    filenames = sorted(os.path.join(path_to_dir, file) for file in os.listdir(path_to_dir))
+
+    num_topics = 5
+    num_top_words = 10
+    num_top_topics = 3
+    zlabels = None
+
+    topic_model_on_nmf(dtm, vocab, num_topics, num_top_words, num_top_topics, file_out)
+    topic_model_on_zlda(docs, vocab, None, num_topics, num_top_words, num_top_topics, file_out)
 

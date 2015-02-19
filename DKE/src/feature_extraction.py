@@ -1,38 +1,13 @@
 # coding=utf-8
 from __future__ import print_function
 
-import numpy as np
 from sklearn.feature_extraction.text import CountVectorizer
 import os
-import sys
-from utils import str_dict, print_dict, save_dict, open_write, open_read, fix_vocabulary, lemmer
+from utils import save_dict, open_write, fix_vocabulary, lemmer
 import cPickle as pickle
-import traceback
-from snowballstemmer import stemmer
 
 __author__ = 'moiseeva'
 
-treshhold = 0.5
-with open('../data/stop_lemms', 'rb') as f:
-    """
-    811 -> 687 tokens
-    """
-    stop_lemms = pickle.load(f)
-
-
-
-vectorizer = CountVectorizer(input=u'filename',
-                             encoding=u'utf-8',
-                             lowercase=True,
-                             preprocessor=lemmer, # None
-                             tokenizer=None,
-                             token_pattern=u'(?u)[A-zА-я\-]{2,}',
-                             stop_words=stop_lemms,
-                             analyzer=u'word',
-                             max_df=treshhold,
-                             min_df=0.0,
-                             binary=False,                 # True
-                             )
 
 def get_stop_words(vectorizer, collection, treshhold=0.5, save_to=None):
     """
@@ -64,28 +39,51 @@ def get_stop_words(vectorizer, collection, treshhold=0.5, save_to=None):
     return stop_words
 
 
+def get_docs(vectorizer, filenames):
+    analyzer = vectorizer.build_analyzer()
+    docs = []
+    for file in filenames:
+        text = analyzer(file)
+        text = [vectorizer.vocabulary_[i] for i in text if i in vectorizer.vocabulary_]
+        docs.append(text)
+    return docs
 
-path_to_dir = 'C:/Users/moiseeva/SElabs/data/utf_new_RGD/txt/validFiles'
-path_to_test = 'C:/Users/moiseeva/SElabs/data/utf_new_RGD/txt/NOTvalidFiles/005.txt'
-filenames = [os.path.join(path_to_dir, file) for file in os.listdir(path_to_dir)]
 
-
-vectorizer.fit(filenames)
-fix_vocabulary(vectorizer.vocabulary_)
-# save_dict(vectorizer.vocabulary_, '../data/vocabulary.txt')
-
-
-transform = vectorizer.transform(filenames)
-with open('../data/transforms', 'wb') as f:
-    pickle.dump(transform, f)
 
 if __name__ == '__main__':
-    pass
-    # а-ля интерактивный режим. Баг: зацикливается на exit()
-    # while True:
-    #     try:
-    #         eval(str(input()))
-    #     except:
-    #         traceback.print_exc(file=sys.stdout)
-    #         print()
+    treshhold = 0.5
+    with open('../data/stop_lemms', 'rb') as f:
+        stop_lemms = pickle.load(f)
+
+    vectorizer = CountVectorizer(input=u'filename',
+                                 encoding=u'utf-8',
+                                 lowercase=True,
+                                 preprocessor=lemmer, # None
+                                 tokenizer=None,
+                                 token_pattern=u'(?u)[A-zА-я\-]{2,}',
+                                 stop_words=stop_lemms,
+                                 analyzer=u'word',
+                                 max_df=treshhold,
+                                 min_df=0.0,
+                                 binary=False,                 # True
+                                 )
+
+    path_to_dir = '/Users/annie/SELabs/data/utf_new_RGD/txt/validFiles'
+    path_to_test = '/Users/annie/SELabs/data/utf_new_RGD/txt/NOTvalidFiles/005.txt'
+    filenames = sorted(os.path.join(path_to_dir, file) for file in os.listdir(path_to_dir))
+
+
+    vectorizer.fit(filenames)
+    fix_vocabulary(vectorizer.vocabulary_)
+    save_dict(vectorizer.vocabulary_, '../data/vocabulary.txt')
+
+    transform = vectorizer.transform(filenames)
+    with open('../data/transforms', 'wb') as f:
+        pickle.dump(transform, f)
+
+    docs = get_docs(vectorizer, filenames)
+    with open('../data/docs', 'wb') as f:
+        pickle.dump(docs, f)
+
+
 
