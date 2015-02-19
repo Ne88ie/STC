@@ -5,9 +5,7 @@ import sys
 __author__ = 'moiseeva'
 
 import numpy as np
-# from gensim import corpora, models, similarities
-from utils import print_dict, open_write
-from sklearn.lda import LDA
+from utils import open_write
 from sklearn import decomposition
 import cPickle as pickle
 from zlabelLDA import zlabelLDA
@@ -51,7 +49,6 @@ def topic_model_on_nmf(dtm, vocab, num_topics=5, num_top_words=10, num_top_topic
 
     print('doctopic...\n', doctopic, file=file_out)
 
-
     novels = sorted(set(novel_names))
     print("\nTop NMF topics in...", file=file_out)
     for i in range(len(doctopic)):
@@ -66,7 +63,6 @@ def topic_model_on_nmf(dtm, vocab, num_topics=5, num_top_words=10, num_top_topic
     print("\nshow phi...", np.array_str(clf.components_, precision=2), file=file_out)
 
     return doctopic, clf.components_
-
 
 
 def topic_model_on_zlda(docs, vocab, zlabels=None, num_topics=5, num_top_words=10, num_top_topics=3, file_out=sys.stdout):
@@ -84,6 +80,8 @@ def topic_model_on_zlda(docs, vocab, zlabels=None, num_topics=5, num_top_words=1
     alpha = .1 * np.ones((1, num_topics))
     beta = .1 * np.ones((num_topics, len(vocab)))
     eta = .95 # confidence in the our labels
+    # (eta = 0 --> don't use z-labels)
+    # (eta = 1 --> "hard" z-labels)
 
     if not zlabels:
         zlabels = [[0]*len(text) for text in docs]
@@ -91,8 +89,6 @@ def topic_model_on_zlda(docs, vocab, zlabels=None, num_topics=5, num_top_words=1
     numsamp = 100 # 200
     randseed = 194582
 
-    # This command will run the standard LDA model
-    eta = 1
     phi, theta, sample = zlabelLDA(docs, zlabels, eta, alpha, beta, numsamp, randseed)
     print('\nTheta - P(z|d)\n', np.array_str(theta, precision=2), file=file_out)
     print('\n\nPhi - P(w|z)\n', np.array_str(phi,precision=2), file=file_out)
@@ -104,9 +100,6 @@ def topic_model_on_zlda(docs, vocab, zlabels=None, num_topics=5, num_top_words=1
 
 
 if __name__ == '__main__':
-
-    file_out = open_write('../data/out.txt')
-
     with open('../data/transforms', 'rb') as f:
         dtm = pickle.load(f)
     with open('../data/docs', 'rb') as f:
@@ -123,6 +116,8 @@ if __name__ == '__main__':
     num_top_topics = 3
     zlabels = None
 
-    topic_model_on_nmf(dtm, vocab, num_topics, num_top_words, num_top_topics, file_out)
-    topic_model_on_zlda(docs, vocab, None, num_topics, num_top_words, num_top_topics, file_out)
+    with open_write('../data/out.txt') as file_out:
+        topic_model_on_nmf(dtm, vocab, num_topics, num_top_words, num_top_topics, file_out)
+    with open_write('../data/out1.txt') as file_out:
+        topic_model_on_zlda(docs, vocab, zlabels, num_topics, num_top_words, num_top_topics, file_out)
 
