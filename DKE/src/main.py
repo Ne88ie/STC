@@ -34,7 +34,7 @@ def evaluate():
     tempSetingsTxt = '../data/tempSettings.txt'
     pathTempDir    = '../data/tempDir'
     ROUGE_result   = '../data/ROUGE_result.txt'
-    pathesToRefs   = ['Users/annie/SELabs/practice/txt/d', 'Users/annie/SELabs/practice/txt/k', 'Users/annie/SELabs/practice/txt/m']
+    pathesToRefs   = ['/Users/annie/PycharmProjects/ROUGE/data/txt/' + i for i in ['d', 'k', 'm']]
     ngramOrder = 2
     skipBigram = 2
     reverseSkipBigram = 'U'

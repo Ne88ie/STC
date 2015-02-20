@@ -34,8 +34,6 @@ class PythonROUGE:
         """
         Create temporary directory and settings file for ROUGE.
         """
-        # guess_summary_list = []
-        # ref_summary_list = []
         os.mkdir(self.pathTemp)
         with open(self.txtTemp, 'w+') as temp:
             i = 0
@@ -45,22 +43,18 @@ class PythonROUGE:
                     newNameFileGuess = os.path.normpath(os.path.join(self.pathTemp, os.path.basename(self.pathToGuess) + '_' + guess))
                     self.__save_translite_gues(nameFileGuess, newNameFileGuess)
                     temp.write('%s' % newNameFileGuess)
-                    # guess_summary_list.append(nameFileGuess)
-                    # ref_summary_list.append([])
                     for dirToRefs in self.pathToRefs:
                         dirName = os.path.basename(dirToRefs)
                         nameFileRef = os.path.normpath(os.path.join(dirToRefs, 'keywords_' + os.path.splitext(guess)[0].split('_')[-1] + '.csv'))
                         if os.path.isfile(nameFileRef):
                             newNameFileRef = os.path.normpath(os.path.join(self.pathTemp, dirName + '_' + os.path.splitext(guess)[0] + '.csv'))
-                            self.__save_translite_refs(nameFileRef, newNameFileRef, self.useRank)
+                            self.__save_translite_refs(nameFileRef, newNameFileRef)
                             temp.write(' %s' % newNameFileRef)
-                            # ref_summary_list[i].append(newNameFileRef)
                     i += 1
                     temp.write('\n')
             if i == 0:
                 print("The folder {0} contains no reference annotation".format(self.pathToGuess))
                 exit()
-        # return guess_summary_list, ref_summary_list
 
     def __runROUGE(self):
         """
@@ -105,17 +99,17 @@ class PythonROUGE:
             with open_write(pathToFile) as toFile:
                 toFile.write(translit(fromFile.read(), 'ru', reversed=True))
 
-    def __save_translite_refs(self, pathFromFile, pathToFile, useRank=False):
+    def __save_translite_refs(self, pathFromFile, pathToFile):
         """
         Save translited version of file.
         """
         with open_read(pathFromFile) as fromFile:
-            with open_add(pathToFile) as toFile:
+            with open_write(pathToFile) as toFile:
                 for line in fromFile:
                     if line.strip():
-                        lineRank = line.split(',', maxsplit=1)
+                        lineRank = line.split(u',', 1)
                         line = lineRank[0]
-                        if useRank:
+                        if self.useRank:
                             rank = lineRank[1]
                             if int(rank) == 0:
                                 continue
@@ -142,9 +136,9 @@ class PythonROUGE:
                 if lineNum % 4 == 3:
                     commonF.append(float(line.split()[3]))
 
-        commonR = sum(commonR)/max(len(commonR), 0.000001)
-        commonP = sum(commonP)/max(len(commonP), 0.000001)
-        commonF = sum(commonF)/max(len(commonF), 0.000001)
+        commonR = sum(commonR)/(len(commonR) or 0.000001)
+        commonP = sum(commonP)/(len(commonP) or 0.000001)
+        commonF = sum(commonF)/(len(commonF) or 0.000001)
 
         return commonR, commonP, commonF
 
@@ -158,7 +152,7 @@ class PythonROUGE:
             self.__runROUGE()
         finally:
             pass
-            # self.__purge()
+            self.__purge()
         ROUGE_output_path = self.__getNameWithLabels()
         commonR, commonP, commonF = self.getAverageMetrics(ROUGE_output_path)
 
@@ -167,3 +161,4 @@ class PythonROUGE:
               'Average Precision = {1:.2f}\n'
               'Average F-measure = {2:.2f}\n'.format(commonR, commonP, commonF), file=out)
         return commonR, commonP, commonF
+

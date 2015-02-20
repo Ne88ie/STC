@@ -70,7 +70,7 @@ def topic_model_on_zlda(docs, vocab, num_topics=5, zlabels=None, eta=0.95, file_
     :param docs:
     :param vocab:
     :param num_topics:
-    :param zlabels:
+    :param zlabels: each entry is ignored unless it is a List.
     :param eta: confidence in the our labels. If eta = 0 --> don't use z-labels, if eta = 1 --> "hard" z-labels.
     :param file_out:
     :return: Phi - P(w|z), Theta - P(z|d)
