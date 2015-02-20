@@ -1,6 +1,8 @@
 .idea
 GMM/src/test.py
 DKE/data/*.txt
+DKE/data/**/*.txt
 DKE/src/*.txt
+DKE/src/RELEASE-1.5.5
 GMM/src/oldCountMeans.py
 *.pyc

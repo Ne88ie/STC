@@ -76,8 +76,8 @@ if __name__ == '__main__':
     treshhold = 0.5
     with open('../data/stop_lemms', 'rb') as f:
         stop_lemms = pickle.load(f)
-    path_to_dir = '/Users/annie/SELabs/data/utf_new_RGD/txt/validFiles'
-    filenames = sorted(os.path.join(path_to_dir, file) for file in os.listdir(path_to_dir))
+    path_to_dir = '/Users/annie/SELabs/practice/txt'
+    filenames = sorted(os.path.join(path_to_dir, file) for file in os.listdir(path_to_dir) if file[-4:] == '.txt')
     path_to_save_vocab = '../data/vocabulary.txt'
     path_to_save_docs = '../data/docs'
 

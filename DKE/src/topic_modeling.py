@@ -71,7 +71,7 @@ def topic_model_on_zlda(docs, vocab, num_topics=5, zlabels=None, eta=0.95, file_
     :param vocab:
     :param num_topics:
     :param zlabels:
-    :param eta: confidence in the our labels. eta = 0 --> don't use z-labels, eta = 1 --> "hard" z-labels
+    :param eta: confidence in the our labels. If eta = 0 --> don't use z-labels, if eta = 1 --> "hard" z-labels.
     :param file_out:
     :return: Phi - P(w|z), Theta - P(z|d)
     """
@@ -108,8 +108,8 @@ if __name__ == '__main__':
         vocab = pickle.load(f)
         vocab = {v: k for k, v in vocab.items()}
 
-    path_to_dir = '/Users/annie/SELabs/data/utf_new_RGD/txt/validFiles'
-    filenames = sorted(os.path.join(path_to_dir, file) for file in os.listdir(path_to_dir))
+    path_to_dir = '/Users/annie/SELabs/practice/txt'
+    filenames = sorted(os.path.join(path_to_dir, file) for file in os.listdir(path_to_dir) if file[-4:] == '.txt')
 
     num_topics = 5
     num_top_words = 10

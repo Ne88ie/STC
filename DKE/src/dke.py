@@ -78,15 +78,16 @@ class DKE:
         return [[self.vocab[word] for word in doc] for doc in self.keywords]
 
 
-def save_keywords(keywords, filenames, path_to_demonstrative_file, path_to_results_dir):
+def save_keywords(keywords, filenames, path_to_demonstrative_file, path_to_results_dir=None):
     with open_write(path_to_demonstrative_file) as f:
         for i, file in enumerate(filenames):
             f.write(u'{0}: {1}\n'.format(os.path.split(file)[-1], u', '.join(keywords[i])))
-    if not os.path.exists(path_to_results_dir):
-                os.mkdir(path_to_results_dir)
-    for i, file in enumerate(filenames):
-        with open_write(os.path.join(path_to_results_dir, os.path.split(file)[-1])) as f:
-            f.write(u'\n'.join(keywords[i]))
+    if path_to_results_dir:
+        if not os.path.exists(path_to_results_dir):
+                    os.mkdir(path_to_results_dir)
+        for i, file in enumerate(filenames):
+            with open_write(os.path.join(path_to_results_dir, os.path.split(file)[-1])) as f:
+                f.write(u'\n'.join(keywords[i]))
 
 
 

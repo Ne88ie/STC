@@ -11,8 +11,9 @@ __morph = pymorphy2.MorphAnalyzer()
 __stemmer = stemmer('russian')
 __pattern = re.compile(u'(?u)[A-zА-я]{2,}')
 
-open_write = lambda file: codecs.open(file, encoding='utf-8', mode='w')
 open_read = lambda file: codecs.open(file, encoding='utf-8', mode='r')
+open_write = lambda file: codecs.open(file, encoding='utf-8', mode='w')
+open_add = lambda file: codecs.open(file, encoding='utf-8', mode='w+')
 
 
 def str_dict(dict_):
