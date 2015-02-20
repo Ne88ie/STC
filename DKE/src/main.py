@@ -20,7 +20,8 @@ def extract_keyword():
     number_of_keywords = 10
     zlabels = None
     eta = 0.95
-    dke = DKE(docs, vocab, num_topics, number_of_keywords, zlabels, eta)
+    lambda_ = 0.75
+    dke = DKE(docs, vocab, num_topics, number_of_keywords, zlabels, eta, lambda_)
     keywords = dke.keywords_extract()
 
     path_to_demonstrative_file = '../data/keywords.txt'

@@ -10,14 +10,13 @@ __author__ = 'annie'
 
 
 class Text:
-    def __init__(self, text_number, text, dke, lambda_=0.75):
+    def __init__(self, text_number, text, dke):
         self.text = set(text)
         self.text_number = text_number
         self.dke = dke
         self.keywords = []
         self.rewards = []
         self.rewards_buffer = []
-        self.lambda_ = lambda_
         self.r_s_z = np.zeros(dke.num_topics)
         self.r_s_z_buffer = []
 
@@ -36,7 +35,7 @@ class Text:
         for topic in range(self.dke.num_topics):
             r_w_z = self.get_r_w_z(topic, word)
             r_s_z_buffer[topic] += r_w_z
-            rewards += self.dke.theta[self.text_number, topic] * r_s_z_buffer[topic] ** self.lambda_
+            rewards += self.dke.theta[self.text_number, topic] * r_s_z_buffer[topic] ** self.dke.lambda_
         self.rewards_buffer.append(rewards)
         self.r_s_z_buffer.append(r_s_z_buffer)
         return rewards
@@ -57,7 +56,7 @@ class DKE:
     """
     See http://infoscience.epfl.ch/record/192441/files/Habibi_ACL_2013.pdf
     """
-    def __init__(self, docs, vocab, num_topics=5, number_of_keywords=10, zlabels=None, eta=0.95):
+    def __init__(self, docs, vocab, num_topics=5, number_of_keywords=10, zlabels=None, eta=0.95, lambda_=0.75):
         self.docs = docs
         self.vocab = vocab
         self.num_topics = num_topics
@@ -65,6 +64,7 @@ class DKE:
         self.phi, self.theta = topic_model_on_zlda(docs, vocab, num_topics, zlabels, eta)
         self.keywords = []
         self.rewards = []
+        self.lambda_ = lambda_
 
     def keywords_ind_extract(self):
         for i, doc in enumerate(self.docs):

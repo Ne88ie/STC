@@ -2,7 +2,7 @@ from __future__ import division, print_function
 import sys
 import os
 import shutil
-from utils import open_write, open_read, open_add
+from utils import open_write, open_read
 from transliterate import translit
 
 __author__ = 'annie'
@@ -131,9 +131,9 @@ class PythonROUGE:
             for lineNum, line in enumerate(file):
                 if lineNum % 4 == 1:
                     commonR.append(float(line.split()[3]))
-                if lineNum % 4 == 2:
+                elif lineNum % 4 == 2:
                     commonP.append(float(line.split()[3]))
-                if lineNum % 4 == 3:
+                elif lineNum % 4 == 3:
                     commonF.append(float(line.split()[3]))
 
         commonR = sum(commonR)/(len(commonR) or 0.000001)
@@ -151,7 +151,6 @@ class PythonROUGE:
             self.__getGuessRefsSettings()
             self.__runROUGE()
         finally:
-            pass
             self.__purge()
         ROUGE_output_path = self.__getNameWithLabels()
         commonR, commonP, commonF = self.getAverageMetrics(ROUGE_output_path)
