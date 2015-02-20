@@ -80,7 +80,7 @@ def get_prepared_texts(files):
     return list_stemmed
 
 
-def fix_vocabulary(vocabulary):
+def del_meaningless_words(vocabulary):
     """
     Removes meaningless words from the dictionary. 820 -> 785 tokens.
     See https://pymorphy2.readthedocs.org/en/latest/user/grammemes.html?highlight=числительное#grammeme-docs

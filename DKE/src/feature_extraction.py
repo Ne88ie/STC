@@ -3,7 +3,7 @@ from __future__ import print_function
 import os
 import cPickle as pickle
 from sklearn.feature_extraction.text import CountVectorizer
-from utils import save_dict, open_write, fix_vocabulary, lemmer
+from utils import save_dict, open_write, del_meaningless_words, lemmer
 
 __author__ = 'annie'
 
@@ -47,11 +47,39 @@ def get_docs(vectorizer, filenames):
         docs.append(text)
     return docs
 
+def get_docs_vocab(filenames, treshhold, stop_lemms, path_to_save_vocab=None, path_to_save_docs=None):
+    vectorizer = CountVectorizer(input=u'filename',
+                                 encoding=u'utf-8',
+                                 lowercase=True,
+                                 preprocessor=lemmer, # None
+                                 tokenizer=None,
+                                 token_pattern=u'(?u)[A-zА-я\-]{2,}',
+                                 stop_words=stop_lemms,
+                                 analyzer=u'word',
+                                 max_df=treshhold,
+                                 min_df=0.0,
+                                 binary=False,                 # True
+                                 )
+
+    vectorizer.fit(filenames)
+    del_meaningless_words(vectorizer.vocabulary_)
+    if path_to_save_vocab:
+        save_dict(vectorizer.vocabulary_, path_to_save_vocab)
+
+    docs = get_docs(vectorizer, filenames)
+    if path_to_save_docs:
+        with open(path_to_save_docs, 'wb') as f:
+            pickle.dump(docs, f)
+    return docs, vectorizer.vocabulary_
 
 if __name__ == '__main__':
     treshhold = 0.5
     with open('../data/stop_lemms', 'rb') as f:
         stop_lemms = pickle.load(f)
+    path_to_dir = '/Users/annie/SELabs/data/utf_new_RGD/txt/validFiles'
+    filenames = sorted(os.path.join(path_to_dir, file) for file in os.listdir(path_to_dir))
+    path_to_save_vocab = '../data/vocabulary.txt'
+    path_to_save_docs = '../data/docs'
 
     vectorizer = CountVectorizer(input=u'filename',
                                  encoding=u'utf-8',
@@ -66,13 +94,10 @@ if __name__ == '__main__':
                                  binary=False,                 # True
                                  )
 
-    path_to_dir = '/Users/annie/SELabs/data/utf_new_RGD/txt/validFiles'
-    filenames = sorted(os.path.join(path_to_dir, file) for file in os.listdir(path_to_dir))
-    path_to_test = '/Users/annie/SELabs/data/utf_new_RGD/txt/NOTvalidFiles/005.txt'
 
 
     vectorizer.fit(filenames)
-    fix_vocabulary(vectorizer.vocabulary_)
+    del_meaningless_words(vectorizer.vocabulary_)
     save_dict(vectorizer.vocabulary_, '../data/vocabulary.txt')
 
     transform = vectorizer.transform(filenames)
