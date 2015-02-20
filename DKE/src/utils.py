@@ -1,15 +1,19 @@
 # coding=utf-8
 import re
-import cPickle as pickle
 import codecs
+import cPickle as pickle
 import pymorphy2
 from snowballstemmer import stemmer
 
-__author__ = 'moiseeva'
+__author__ = 'annie'
 
 __morph = pymorphy2.MorphAnalyzer()
 __stemmer = stemmer('russian')
 __pattern = re.compile(u'(?u)[A-zА-я]{2,}')
+
+open_write = lambda file: codecs.open(file, encoding='utf-8', mode='w')
+open_read = lambda file: codecs.open(file, encoding='utf-8', mode='r')
+
 
 def str_dict(dict_):
     """
@@ -49,8 +53,10 @@ def stemmer(text):
     text = __stemmer.stemWords(text.split())
     return u' '.join(text)
 
+
 def normalized(matchobj):
     return __morph.parse(matchobj.group(0))[0].normal_form
+
 
 def lemmer(text):
     """
@@ -59,6 +65,7 @@ def lemmer(text):
     :return: str
     """
     return __pattern.sub(normalized, text)
+
 
 def get_prepared_texts(files):
     """
@@ -90,6 +97,7 @@ def fix_vocabulary(vocabulary):
             vocabulary[word] = i
             i += 1
 
+
 def get_stop_lemms(path_to_stop_words):
     """
     Union equal norm forms from file containing stop words.
@@ -99,6 +107,7 @@ def get_stop_lemms(path_to_stop_words):
     with open_read(path_to_stop_words) as f:
         return sorted(set(f.read().split()))
 
+
 def dump_words_from_file(file):
     """
     Read words from file, split them to list, save list by dump.
@@ -107,7 +116,3 @@ def dump_words_from_file(file):
     with open_read(file) as f_from:
         with open(file[:-4], 'wb') as f_to:
             pickle.dump(f_from.read().split(), f_to)
-
-open_write = lambda file: codecs.open(file, encoding='utf-8', mode='w')
-open_read = lambda file: codecs.open(file, encoding='utf-8', mode='r')
-

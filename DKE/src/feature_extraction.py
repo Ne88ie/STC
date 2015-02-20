@@ -1,12 +1,11 @@
 # coding=utf-8
 from __future__ import print_function
-
-from sklearn.feature_extraction.text import CountVectorizer
 import os
-from utils import save_dict, open_write, fix_vocabulary, lemmer
 import cPickle as pickle
+from sklearn.feature_extraction.text import CountVectorizer
+from utils import save_dict, open_write, fix_vocabulary, lemmer
 
-__author__ = 'moiseeva'
+__author__ = 'annie'
 
 
 def get_stop_words(vectorizer, collection, treshhold=0.5, save_to=None):
@@ -49,7 +48,6 @@ def get_docs(vectorizer, filenames):
     return docs
 
 
-
 if __name__ == '__main__':
     treshhold = 0.5
     with open('../data/stop_lemms', 'rb') as f:
@@ -84,6 +82,3 @@ if __name__ == '__main__':
     docs = get_docs(vectorizer, filenames)
     with open('../data/docs', 'wb') as f:
         pickle.dump(docs, f)
-
-
-

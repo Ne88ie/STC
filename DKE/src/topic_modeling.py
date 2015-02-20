@@ -1,15 +1,14 @@
 from __future__ import print_function
 import os
 import sys
-
-__author__ = 'moiseeva'
-
 import numpy as np
+import cPickle as pickle
 from utils import open_write
 from sklearn import decomposition
-import cPickle as pickle
 from zlabelLDA import zlabelLDA
 range = xrange
+
+__author__ = 'annie'
 
 
 def topic_model_on_nmf(dtm, vocab, num_topics=5, num_top_words=10, num_top_topics=3, file_out=sys.stdout):
@@ -21,7 +20,7 @@ def topic_model_on_nmf(dtm, vocab, num_topics=5, num_top_words=10, num_top_topic
     :param num_top_words:
     :param num_top_topics:
     :param file_out:
-    :return: Theta - P(z|d), Phi - P(w|z)
+    :return: Phi - P(w|z), Theta - P(z|d)
     """
     clf = decomposition.NMF(n_components=num_topics, random_state=1)
 
@@ -62,10 +61,10 @@ def topic_model_on_nmf(dtm, vocab, num_topics=5, num_top_words=10, num_top_topic
 
     print("\nshow phi...", np.array_str(clf.components_, precision=2), file=file_out)
 
-    return doctopic, clf.components_
+    return clf.components_, doctopic
 
 
-def topic_model_on_zlda(docs, vocab, zlabels=None, num_topics=5, num_top_words=10, num_top_topics=3, file_out=sys.stdout):
+def topic_model_on_zlda(docs, vocab, num_topics=5, num_top_words=10, zlabels=None, num_top_topics=3, file_out=sys.stdout):
     """
     See http://pages.cs.wisc.edu/~andrzeje/research/zl_lda.html
     :param docs:
@@ -75,7 +74,7 @@ def topic_model_on_zlda(docs, vocab, zlabels=None, num_topics=5, num_top_words=1
     :param num_top_words:
     :param num_top_topics:
     :param file_out:
-    :return: Theta - P(z|d), Phi - P(w|z), sample
+    :return: Phi - P(w|z), Theta - P(z|d)
     """
     alpha = .1 * np.ones((1, num_topics))
     beta = .1 * np.ones((num_topics, len(vocab)))
@@ -95,8 +94,12 @@ def topic_model_on_zlda(docs, vocab, zlabels=None, num_topics=5, num_top_words=1
     print('\n\nsample', file=file_out)
     for doc in range(len(docs)):
         print(sample[doc], file=file_out)
+    return phi, theta
 
-    return theta, phi, sample
+
+def save_phi_theta(file, phi, theta):
+    with open(file, 'wb') as f:
+        pickle.dump((phi, theta), f)
 
 
 if __name__ == '__main__':
@@ -116,8 +119,9 @@ if __name__ == '__main__':
     num_top_topics = 3
     zlabels = None
 
-    with open_write('../data/out.txt') as file_out:
-        topic_model_on_nmf(dtm, vocab, num_topics, num_top_words, num_top_topics, file_out)
+    # with open_write('../data/out.txt') as file_out:
+    #     topic_model_on_nmf(dtm, vocab, num_topics, num_top_words, num_top_topics, file_out)
     with open_write('../data/out1.txt') as file_out:
-        topic_model_on_zlda(docs, vocab, zlabels, num_topics, num_top_words, num_top_topics, file_out)
+        theta, phi = topic_model_on_zlda(docs, vocab, num_topics, num_top_words, zlabels, num_top_topics, file_out)
+
 
