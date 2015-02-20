@@ -64,36 +64,33 @@ def topic_model_on_nmf(dtm, vocab, num_topics=5, num_top_words=10, num_top_topic
     return clf.components_, doctopic
 
 
-def topic_model_on_zlda(docs, vocab, num_topics=5, num_top_words=10, zlabels=None, num_top_topics=3, file_out=sys.stdout):
+def topic_model_on_zlda(docs, vocab, num_topics=5, zlabels=None, eta=0.95, file_out=None):
     """
     See http://pages.cs.wisc.edu/~andrzeje/research/zl_lda.html
     :param docs:
     :param vocab:
-    :param zlabels:
     :param num_topics:
-    :param num_top_words:
-    :param num_top_topics:
+    :param zlabels:
+    :param eta: confidence in the our labels. eta = 0 --> don't use z-labels, eta = 1 --> "hard" z-labels
     :param file_out:
     :return: Phi - P(w|z), Theta - P(z|d)
     """
     alpha = .1 * np.ones((1, num_topics))
     beta = .1 * np.ones((num_topics, len(vocab)))
-    eta = .95 # confidence in the our labels
-    # (eta = 0 --> don't use z-labels)
-    # (eta = 1 --> "hard" z-labels)
+    numsamp = 100
+    randseed = 194582
 
     if not zlabels:
         zlabels = [[0]*len(text) for text in docs]
 
-    numsamp = 100 # 200
-    randseed = 194582
-
     phi, theta, sample = zlabelLDA(docs, zlabels, eta, alpha, beta, numsamp, randseed)
-    print('\nTheta - P(z|d)\n', np.array_str(theta, precision=2), file=file_out)
-    print('\n\nPhi - P(w|z)\n', np.array_str(phi,precision=2), file=file_out)
-    print('\n\nsample', file=file_out)
-    for doc in range(len(docs)):
-        print(sample[doc], file=file_out)
+    if file_out:
+        print('\nTheta - P(z|d)\n', np.array_str(theta, precision=2), file=file_out)
+        print('\n\nPhi - P(w|z)\n', np.array_str(phi,precision=2), file=file_out)
+        print('\n\nsample', file=file_out)
+        for doc in range(len(docs)):
+            print(sample[doc], file=file_out)
+
     return phi, theta
 
 
@@ -118,10 +115,11 @@ if __name__ == '__main__':
     num_top_words = 10
     num_top_topics = 3
     zlabels = None
+    eta = 0.95
 
     # with open_write('../data/out.txt') as file_out:
     #     topic_model_on_nmf(dtm, vocab, num_topics, num_top_words, num_top_topics, file_out)
     with open_write('../data/out1.txt') as file_out:
-        theta, phi = topic_model_on_zlda(docs, vocab, num_topics, num_top_words, zlabels, num_top_topics, file_out)
+        theta, phi = topic_model_on_zlda(docs, vocab, num_topics, zlabels, eta, file_out)
 
 

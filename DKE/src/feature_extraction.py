@@ -67,8 +67,8 @@ if __name__ == '__main__':
                                  )
 
     path_to_dir = '/Users/annie/SELabs/data/utf_new_RGD/txt/validFiles'
-    path_to_test = '/Users/annie/SELabs/data/utf_new_RGD/txt/NOTvalidFiles/005.txt'
     filenames = sorted(os.path.join(path_to_dir, file) for file in os.listdir(path_to_dir))
+    path_to_test = '/Users/annie/SELabs/data/utf_new_RGD/txt/NOTvalidFiles/005.txt'
 
 
     vectorizer.fit(filenames)

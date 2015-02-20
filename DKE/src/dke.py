@@ -1,7 +1,9 @@
 from __future__ import division, print_function
+import os
 import numpy as np
 import cPickle as pickle
 from topic_modeling import topic_model_on_zlda
+from utils import open_write
 range = xrange
 
 __author__ = 'annie'
@@ -13,6 +15,8 @@ class Text:
         self.text_number = text_number
         self.dke = dke
         self.keywords = []
+        self.rewards = []
+        self.rewards_buffer = []
         self.lambda_ = lambda_
         self.r_s_z = np.zeros(dke.num_topics)
         self.r_s_z_buffer = []
@@ -33,6 +37,7 @@ class Text:
             r_w_z = self.get_r_w_z(topic, word)
             r_s_z_buffer[topic] += r_w_z
             rewards += self.dke.theta[self.text_number, topic] * r_s_z_buffer[topic] ** self.lambda_
+        self.rewards_buffer.append(rewards)
         self.r_s_z_buffer.append(r_s_z_buffer)
         return rewards
 
@@ -41,29 +46,48 @@ class Text:
             words = list(self.text - set(self.keywords))
             word = max(words, key=self.reward_function)
             self.keywords.append(word)
-            index = words.index(word)
-            self.r_s_z += self.r_s_z_buffer[index]
+            ind = words.index(word)
+            self.rewards.append(self.rewards_buffer[ind])
+            self.r_s_z += self.r_s_z_buffer[ind]
             self.r_s_z_buffer = []
-        return self.keywords
+            self.rewards_buffer = []
+        return self.keywords, self.rewards
 
 class DKE:
-    def __init__(self, docs, vocab, zlabels=None, num_topics=5, number_of_keywords=10):
+    """
+    See http://infoscience.epfl.ch/record/192441/files/Habibi_ACL_2013.pdf
+    """
+    def __init__(self, docs, vocab, num_topics=5, number_of_keywords=10, zlabels=None, eta=0.95):
         self.docs = docs
         self.vocab = vocab
         self.num_topics = num_topics
         self.number_of_keywords = number_of_keywords
-        self.phi, self.theta = topic_model_on_zlda(docs, vocab, num_topics, number_of_keywords, zlabels)
+        self.phi, self.theta = topic_model_on_zlda(docs, vocab, num_topics, zlabels, eta)
         self.keywords = []
+        self.rewards = []
 
     def keywords_ind_extract(self):
         for i, doc in enumerate(self.docs):
-            keywords = Text(i, doc, self).keywords_extract()
+            keywords, rewards = Text(i, doc, self).keywords_extract()
             self.keywords.append(keywords)
+            self.rewards.append(rewards)
         return self.keywords
 
     def keywords_extract(self):
         self.keywords_ind_extract()
         return [[self.vocab[word] for word in doc] for doc in self.keywords]
+
+
+def save_keywords(keywords, filenames, path_to_demonstrative_file, path_to_results_dir):
+    with open_write(path_to_demonstrative_file) as f:
+        for i, file in enumerate(filenames):
+            f.write(u'{0}: {1}\n'.format(os.path.split(file)[-1], u', '.join(keywords[i])))
+    if not os.path.exists(path_to_results_dir):
+                os.mkdir(path_to_results_dir)
+    for i, file in enumerate(filenames):
+        with open_write(os.path.join(path_to_results_dir, os.path.split(file)[-1])) as f:
+            f.write(u'\n'.join(keywords[i]))
+
 
 
 if __name__ == "__main__":
@@ -75,4 +99,10 @@ if __name__ == "__main__":
 
     dke = DKE(docs, vocab)
     keywords = dke.keywords_extract()
-    print('\nkeywords\n', keywords)
+    path_to_demonstrative_file = '../data/keywords.txt'
+    path_to_dir = '/Users/annie/SELabs/data/utf_new_RGD/txt/validFiles'
+    filenames = sorted(os.path.join(path_to_dir, file) for file in os.listdir(path_to_dir))
+    path_to_results_dir = '../data/dke'
+    save_keywords(keywords, filenames, path_to_demonstrative_file, path_to_results_dir)
+
+
