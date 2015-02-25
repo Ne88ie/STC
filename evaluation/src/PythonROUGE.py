@@ -16,7 +16,7 @@ Inputs:
     ROUGE_result  - output file for ROUGE.
     ngramOrder    - (optional) the order of the N-grams used to compute ROUGE. The default is 2 (bigrams).
     skipBigram    - (optional) max-gap-length. The default is 2.
-    reverseSkipBigram - (optional) compute ROUGE-SUx or ROUGE-Sx or both. The default is 'U' - both.
+    reverseSkipBigram - (optional) compute ROUGE-SUx ('u') or ROUGE-Sx ('s') or both ('U'). The default is 'U'.
     doStem        - (optional) use stemmer for Russian language. The default is False.
     useRank       - (optional) distinguish whether general keywords (1 in marked file) and detailed keywords (0 in marked file).
                     Detailed keywords is ignored. The default is False.

@@ -36,9 +36,9 @@ def evaluate():
     pathTempDir    = '../data/tempDir'
     ROUGE_result   = '../data/ROUGE_result.txt'
     pathesToRefs   = ['/Users/annie/PycharmProjects/ROUGE/data/txt/' + i for i in ['d', 'k', 'm']]
-    ngramOrder = 2
+    ngramOrder = 1
     skipBigram = 2
-    reverseSkipBigram = 'U'
+    reverseSkipBigram = 'u'
     preprocessor = lemmer
 
     pr = PythonROUGE(pathToGuess, pathesToRefs, tempSetingsTxt, pathTempDir, ROUGE_result, ngramOrder, skipBigram, reverseSkipBigram, preprocessor)
