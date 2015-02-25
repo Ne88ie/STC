@@ -9,6 +9,19 @@ __author__ = 'annie'
 
 
 class PythonROUGE:
+    """
+    pathToGuess   - folders in which are candidates for summarization.
+    pathToRefs    - list of folders for reference summarizations.
+    pathTempDir   - path to temporary directory where we store the translited version for each file.
+    temSetingsTxt - temporary settings file for ROUGE.
+    ROUGE_result  - output file for ROUGE.
+    ngramOrder    - (optional) the order of the N-grams used to compute ROUGE. The default is 2 (bigrams).
+    skipBigram    - (optional) max-gap-length. The default is 2.
+    reverseSkipBigram - (optional) compute ROUGE-SUx ('u') or ROUGE-Sx ('s') or both ('U'). The default is 'U'.
+    doStem        - (optional) use stemmer for Russian language. The default is False.
+    useRank       - (optional) distinguish whether general keywords (1 in marked file) and detailed keywords (0 in marked file).
+                    Detailed keywords is ignored. The default is False.
+    """
     def __init__(self, pathToGuess='', pathToRefs='', txtTemp='', pathTemp='', ROUGE_output_path='',
                  ngramOrder=2, skipBigram=2, reverseSkipBigram='U', preprocessor=None, useRank=False):
         self.pathToGuess = pathToGuess
@@ -108,11 +121,11 @@ class PythonROUGE:
                 for line in fromFile:
                     if line.strip():
                         lineRank = line.split(u',', 1)
-                        line = lineRank[0]
                         if self.useRank:
                             rank = lineRank[1]
                             if int(rank) == 0:
                                 continue
+                        line = lineRank[0]
                         line = ' '.join([word for word in line.split() if not word.startswith(u'*')]) + '\n'
                         if self.preprocessor:
                             line = self.preprocessor(line)
