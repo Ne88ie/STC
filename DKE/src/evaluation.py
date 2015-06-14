@@ -47,9 +47,7 @@ class PythonROUGE:
         return resultName
 
     def __getGuessRefsSettings(self):
-        """
-        Create temporary directory and settings file for ROUGE.
-        """
+        """ Create temporary directory and settings file for ROUGE. """
         os.mkdir(self.pathTemp)
         with open(self.txtTemp, 'w+') as temp:
             i = 0
@@ -87,9 +85,7 @@ class PythonROUGE:
                 exit()
 
     def __runROUGE(self):
-        """
-        Wrapper function to use ROUGE.
-        """
+        """ Wrapper function to use ROUGE. """
         ROUGE_path = os.path.join(
             os.path.dirname(os.path.abspath(__file__)),
             os.path.normpath('RELEASE-1.5.5/ROUGE-1.5.5.pl')
@@ -131,9 +127,7 @@ class PythonROUGE:
         os.system(exec_command)
 
     def __purge(self):
-        """
-        Delete all temporary files.
-        """
+        """ Delete all temporary files. """
         if os.path.exists(self.pathTemp): shutil.rmtree(self.pathTemp)
         if os.path.exists(self.txtTemp): os.remove(self.txtTemp)
 
@@ -143,9 +137,7 @@ class PythonROUGE:
                 toFile.write(translit(fromFile.read(), 'ru', reversed=True))
 
     def __save_translite_refs(self, pathFromFile, pathToFile):
-        """
-        Save translited version of file.
-        """
+        """ Save translited version of file. """
         with open_read(pathFromFile) as fromFile:
             with open_write(pathToFile) as toFile:
                 for line in fromFile:
