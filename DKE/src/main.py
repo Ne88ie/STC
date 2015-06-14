@@ -7,14 +7,14 @@ from shutil import rmtree
 from topic_model_on_zlabelspy import TTopic_Model_ON_ZLABELS
 from dke import DKE, LAMBDA
 from test_files_to_catalogs import plane_test_files, map_base_name_to_number
-from feature_extract import TOKEN_PATTERN, iseq_del_meaningless_words, iseg_normalize, get_tokenizer, MAX_DF, \
-    USE_IDF, MIN_DF, get_vocabulary_analyzer_transform, count_transform_files, pymorphy2_del_meaningless_words, \
-    pymorphy2_normalize, snowball_stemme
+from feature_extract import TOKEN_PATTERN, MAX_DF, USE_IDF, MIN_DF, count_transform_files, \
+    iseq_del_meaningless_words, iseg_normalize, pymorphy2_del_meaningless_words, pymorphy2_normalize, \
+    get_tokenizer, snowball_stemme, get_vocabulary_analyzer_transform
 from topic_model_on_nmf import TTopic_Model_ON_NMF
 from evaluation import PythonROUGE
 from preprocessing_data import merge_all_dirs, Catalog, copy_files_for_training
 
-from __init__ import BASE_DIR, TEST_DIR, TRAINING_DIR, STOP_WORDS, open_write, NUM_TOPICS, WORD_LABELS, open_read
+from __init__ import BASE_DIR, TEST_DIR, STOP_WORDS, NUM_TOPICS, WORD_LABELS, open_write, open_read, TRAINING_DIR
 
 __author__ = 'annie'
 
@@ -87,7 +87,9 @@ def main_test(res_prefix, remover=iseq_del_meaningless_words, normalizer=iseg_no
                     zlabels.append(zlabels_for_text)
 
             topic_model = TTopic_Model_ON_ZLABELS()
-            topic_model.fit_topic_model(docs, len(vocab), do_recalculation_of_conditional_probability, num_topics, zlabels)
+            topic_model.fit_topic_model(
+                docs, len(vocab), do_recalculation_of_conditional_probability, num_topics, zlabels
+            )
             words_topics = topic_model.words_topics  # (650, 6)
             docs_topics = topic_model.docs_topics  # (110, 6)
         return words_topics, docs_topics
@@ -331,10 +333,11 @@ if __name__ == '__main__':
     # TEXTRANK_KEYWORDS_DIR = os.path.join(TEST_DIR, 'textrank')
     TEXTRANK_KEYWORDS_DIR = os.path.join(TEST_DIR, 'ng_wn_3')
     'сравнение c textrank'
-    def get_ROUGE_matrics_for_textrank(res_prefix='ng_wn_3', remover=iseq_del_meaningless_words, normalizer=iseg_normalize, stemmer=None,
-              treshhold=MAX_DF, min_df=MIN_DF, use_idf=USE_IDF, flag_topic_model='zlbels_w_labels',
-              num_topics=NUM_TOPICS, lambda_=LAMBDA, useRank=False,
-              do_recalculation_of_conditional_probability=True):
+    def get_ROUGE_matrics_for_textrank(
+            res_prefix='ng_wn_3', remover=iseq_del_meaningless_words, normalizer=iseg_normalize,
+            stemmer=None, treshhold=MAX_DF, min_df=MIN_DF, use_idf=USE_IDF, useRank=False,
+            flag_topic_model='zlbels_w_labels', num_topics=NUM_TOPICS, lambda_=LAMBDA,
+            do_recalculation_of_conditional_probability=True):
         """----------------- перекладываем файлы из каталогов в одну папку ------------------------"""
         TEMP_BASE_DIR = BASE_DIR + '.plane'
         # copy_plane_files_for_base(BASE_DIR, TEMP_BASE_DIR)

@@ -7,13 +7,14 @@ from DKE.src.preprocessing_data import copy_files_for_testing, copy_plane_files_
 from DKE.src.test_files_to_catalogs import plane_test_files, map_base_name_to_number
 from DKE.src.topic_model_on_nmf import TTopic_Model_ON_NMF
 from evaluation import PythonROUGE
-from feature_extract import get_vocabulary_analyzer_transform, TOKEN_PATTERN, iseq_del_meaningless_words, \
-    iseg_normalize, get_tokenizer, MAX_DF, USE_IDF, count_transform_files
-from __init__ import open_read, STOP_WORDS, TRAINING_DIR, open_write, BASE_DIR, TEST_DIR
+from feature_extract import TOKEN_PATTERN, iseq_del_meaningless_words, iseg_normalize, get_tokenizer, \
+    MAX_DF, USE_IDF, get_vocabulary_analyzer_transform, count_transform_files
+from __init__ import STOP_WORDS, BASE_DIR, TEST_DIR, open_read, TRAINING_DIR, open_write
 
 __author__ = 'annie'
 
 LAMBDA = 0.75
+
 
 class DKE:
     def __init__(self, words_topics, docs_topics, vocab, analyzer, lambda_=LAMBDA):
@@ -44,7 +45,8 @@ class DKE:
     def _reward_function(self, word):
         result = 0
         for topic_ind, topic_f in enumerate(self.temp_distribution_of_topics):
-            result += self._b_z(topic_ind) * pow(self.words_topics[word, topic_ind] + self.temp_prev_reward_value, self.lambda_)
+            result += self._b_z(topic_ind) * pow(self.words_topics[word, topic_ind] +
+                                                 self.temp_prev_reward_value, self.lambda_)
         return result
 
     def _get_next_keyword(self):

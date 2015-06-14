@@ -4,10 +4,10 @@ import os
 import numpy as np
 import cPickle as pickle
 from sklearn import decomposition
-from feature_extract import COMPRESSED_CATALOGS, TOKEN_PATTERN, iseq_del_meaningless_words, iseg_normalize, \
-    get_tokenizer, MAX_DF, USE_IDF, get_vocabulary_analyzer_transform, count_transform_files, snowball_stemme
+from feature_extract import TOKEN_PATTERN, iseq_del_meaningless_words, iseg_normalize, get_tokenizer, \
+    MAX_DF, USE_IDF, count_transform_files, get_vocabulary_analyzer_transform, COMPRESSED_CATALOGS, snowball_stemme
 
-from __init__ import BASE_DIR, TEST_DIR, TRAINING_DIR, TEMP_DIR, STOP_WORDS, NUM_TOPICS
+from __init__ import TRAINING_DIR, STOP_WORDS, NUM_TOPICS, BASE_DIR, TEST_DIR, TEMP_DIR
 
 
 
@@ -28,7 +28,8 @@ class TTopic_Model_ON_NMF:
         ''' считаем p(z|w) - words_topics из данных p(w|z) - topics_words на основе условной вероятности '''
         topics_words += 0.0001
         if do_recalculation_of_conditional_probability:
-            topics_words = topics_words * topics_words.sum(axis=1)[:,np.newaxis]/(topics_words.sum(axis=0)[np.newaxis, :])
+            topics_words *= topics_words.sum(axis=1)[:,np.newaxis]
+            topics_words /= (topics_words.sum(axis=0)[np.newaxis, :])
         ''' нормировка '''
         topics_words = topics_words / np.sum(topics_words, axis=0, keepdims=True)
         self.words_topics = topics_words.T

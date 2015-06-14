@@ -15,11 +15,14 @@ class PythonROUGE:
     pathTempDir   - path to temporary directory where we store the translited version for each file.
     temSetingsTxt - temporary settings file for ROUGE.
     ROUGE_result  - output file for ROUGE.
-    ngramOrder    - (optional) the order of the N-grams used to compute ROUGE. The default is 2 (bigrams).
+    ngramOrder    - (optional) the order of the N-grams used to compute ROUGE. The default is 2
+                    (bigrams).
     skipBigram    - (optional) max-gap-length. The default is 2.
-    reverseSkipBigram - (optional) compute ROUGE-SUx ('u') or ROUGE-Sx ('s') or both ('U'). The default is 'U'.
+    reverseSkipBigram - (optional) compute ROUGE-SUx ('u') or ROUGE-Sx ('s') or both ('U'). The default
+                        is 'U'.
     doStem        - (optional) use stemmer for Russian language. The default is False.
-    useRank       - (optional) distinguish whether general keywords (1 in marked file) and detailed keywords (0 in marked file).
+    useRank       - (optional) distinguish whether general keywords (1 in marked file) and detailed
+                    keywords (0 in marked file).
                     Detailed keywords is ignored. The default is False.
     """
     def __init__(self, pathToGuess='', pathToRefs='', txtTemp='', pathTemp='', ROUGE_output_path='',
@@ -53,14 +56,28 @@ class PythonROUGE:
             for guess in os.listdir(self.pathToGuess):
                 if guess[-4:] in ('.txt', '.csv'):
                     nameFileGuess = os.path.normpath(os.path.join(self.pathToGuess, guess))
-                    newNameFileGuess = os.path.normpath(os.path.join(self.pathTemp, os.path.basename(self.pathToGuess) + '_' + guess))
+                    newNameFileGuess = os.path.normpath(
+                        os.path.join(
+                            self.pathTemp,
+                            os.path.basename(self.pathToGuess) + '_' + guess
+                        )
+                    )
                     self.__save_translite_gues(nameFileGuess, newNameFileGuess)
                     temp.write('%s' % newNameFileGuess)
                     for dirToRefs in self.pathToRefs:
                         dirName = os.path.basename(dirToRefs)
-                        nameFileRef = os.path.normpath(os.path.join(dirToRefs, 'keywords_' + os.path.splitext(guess)[0].split('_')[-1] + '.csv'))
+                        nameFileRef = os.path.normpath(
+                            os.path.join(
+                                dirToRefs,
+                                'keywords_' + os.path.splitext(guess)[0].split('_')[-1] + '.csv'
+                            )
+                        )
                         if os.path.isfile(nameFileRef):
-                            newNameFileRef = os.path.normpath(os.path.join(self.pathTemp, dirName + '_' + os.path.splitext(guess)[0] + '.csv'))
+                            newNameFileRef = os.path.normpath(
+                                os.path.join(
+                                    self.pathTemp, dirName + '_' + os.path.splitext(guess)[0] + '.csv'
+                                )
+                            )
                             self.__save_translite_refs(nameFileRef, newNameFileRef)
                             temp.write(' %s' % newNameFileRef)
                     i += 1
@@ -73,14 +90,22 @@ class PythonROUGE:
         """
         Wrapper function to use ROUGE.
         """
-        ROUGE_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), os.path.normpath('RELEASE-1.5.5/ROUGE-1.5.5.pl'))
-        data_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), os.path.normpath('RELEASE-1.5.5/data'))
+        ROUGE_path = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)),
+            os.path.normpath('RELEASE-1.5.5/ROUGE-1.5.5.pl')
+        )
+        data_path = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)),
+            os.path.normpath('RELEASE-1.5.5/data')
+        )
         '''
         options for ROUGE:
             -f A|B (scoring formula)
-                A - (by default) use model average to compute the overall ROUGE scores when there are multiple references. "-f A" option is better
+                A - (by default) use model average to compute the overall ROUGE scores when there are
+                    multiple references. "-f A" option is better
                     when use ROUGE in summarization evaluations.
-                B - use the best matching score among the referenes as the final score. "-f B" option is better when use ROUGE in machine translation.
+                B - use the best matching score among the referenes as the final score. "-f B" option
+                    is better when use ROUGE in machine translation.
             -m (steming),
             -n (count ROUGE-N),
             -s (dell stopwords),
@@ -88,10 +113,15 @@ class PythonROUGE:
                 -u (use unigramms)
                 -U (same as -u but also compute regular skip-bigram)
             -x (do not calculate ROUGE-L)
-            -w weight (weighting factor for WLCS - 'L^weight' typically this is set to 1.2 or other number greater than 1.
+            -w weight (weighting factor for WLCS - 'L^weight' typically this is set to 1.2 or other
+               number greater than 1.
         '''
         unigramInSkipBigram = '' if self.reverseSkipBigram == 's' else '-' + self.reverseSkipBigram
-        options = '-a -2 {0} {1} -n {2}'.format(str(self.skipBigram), unigramInSkipBigram, str(self.ngramOrder))
+        options = '-a -2 {0} {1} -n {2}'.format(
+            str(self.skipBigram),
+            unigramInSkipBigram,
+            str(self.ngramOrder)
+        )
 
         # >> RELEASE-1.5.5/ROUGE-1.5.5.pl -e RELEASE-1.5.5/data -a -2 4 -u -n 2 -z SPL ../../data/tempSettings.txt > ../../data/ROUGE_result.txt
         exec_command = os.path.normpath(ROUGE_path) + \
@@ -126,7 +156,8 @@ class PythonROUGE:
                             if rank.isdigit() and int(rank) == 0:
                                 continue
                         line = lineRank[0]
-                        line = ' '.join([word for word in line.split() if not word.startswith(u'*')]) + '\n'
+                        line = ' '.join([word for word in line.split() if not word.startswith(u'*')])
+                        line += '\n'
                         if self.preprocessor:
                             line = self.preprocessor(line)
                         toFile.write(translit(line, 'ru', reversed=True))

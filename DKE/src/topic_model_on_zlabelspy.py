@@ -5,10 +5,10 @@ from zlabelLDA import zlabelLDA
 import numpy as np
 import cPickle as pickle
 from sklearn import decomposition
-from feature_extract import COMPRESSED_CATALOGS, TOKEN_PATTERN, iseq_del_meaningless_words, iseg_normalize, \
-    get_tokenizer, MAX_DF, USE_IDF, get_vocabulary_analyzer_transform, count_transform_files, snowball_stemme
+from feature_extract import TOKEN_PATTERN, iseq_del_meaningless_words, iseg_normalize, get_tokenizer,\
+    MAX_DF, USE_IDF, get_vocabulary_analyzer_transform, COMPRESSED_CATALOGS, count_transform_files, snowball_stemme
 
-from __init__ import BASE_DIR, TEST_DIR, TRAINING_DIR, TEMP_DIR, STOP_WORDS, NUM_TOPICS
+from __init__ import TRAINING_DIR, STOP_WORDS, NUM_TOPICS, BASE_DIR, TEST_DIR, TEMP_DIR
 
 
 class TTopic_Model_ON_ZLABELS:
@@ -16,14 +16,16 @@ class TTopic_Model_ON_ZLABELS:
         self.words_topics = None
         self.docs_topics = None
 
-    def fit_topic_model(self, docs, len_vocab, do_recalculation_of_conditional_probability=True, num_topics=NUM_TOPICS, zlabels=None, eta=0.95):
+    def fit_topic_model(self, docs, len_vocab, do_recalculation_of_conditional_probability=True,
+                        num_topics=NUM_TOPICS, zlabels=None, eta=0.95):
         """
         See http://pages.cs.wisc.edu/~andrzeje/research/zl_lda.html
         :param docs:
         :param vocab:
         :param num_topics:
         :param zlabels: each entry is ignored unless it is a List.
-        :param eta: confidence in the our labels. If eta = 0 --> don't use z-labels, if eta = 1 --> "hard" z-labels.
+        :param eta: confidence in the our labels. If eta = 0 --> don't use z-labels,
+               if eta = 1 --> "hard" z-labels.
         :param file_out:
         :return: Phi - P(w|z), Theta - P(z|d)
         """
