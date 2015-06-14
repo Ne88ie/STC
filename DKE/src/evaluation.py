@@ -2,7 +2,7 @@ from __future__ import division, print_function
 import sys
 import os
 import shutil
-from utils import open_write, open_read
+from __init__ import open_write, open_read
 from transliterate import translit
 
 __author__ = 'annie'
@@ -121,9 +121,9 @@ class PythonROUGE:
                 for line in fromFile:
                     if line.strip():
                         lineRank = line.split(u',', 1)
-                        if self.useRank:
+                        if self.useRank and len(lineRank) == 2:
                             rank = lineRank[1]
-                            if int(rank) == 0:
+                            if rank.isdigit() and int(rank) == 0:
                                 continue
                         line = lineRank[0]
                         line = ' '.join([word for word in line.split() if not word.startswith(u'*')]) + '\n'
@@ -169,8 +169,8 @@ class PythonROUGE:
         commonR, commonP, commonF = self.getAverageMetrics(ROUGE_output_path)
 
         print('Average ROUGE metrics for {0}:'.format(ROUGE_output_path), file=out)
-        print('Average Recall    = {0:.2f}\n'
-              'Average Precision = {1:.2f}\n'
-              'Average F-measure = {2:.2f}\n'.format(commonR, commonP, commonF), file=out)
+        print('Average Recall    = {0:.4f}\n'
+              'Average Precision = {1:.4f}\n'
+              'Average F-measure = {2:.4f}\n'.format(commonR, commonP, commonF), file=out)
         return commonR, commonP, commonF
 

@@ -1,109 +1,155 @@
+# coding=utf-8
 from __future__ import division, print_function
 import os
+from shutil import rmtree
 import numpy as np
-import cPickle as pickle
-from topic_modeling import topic_model_on_zlda
-from utils import open_write
-range = xrange
+from DKE.src.preprocessing_data import copy_files_for_testing, copy_plane_files_for_base, copy_plane_files_for_testing
+from DKE.src.test_files_to_catalogs import plane_test_files, map_base_name_to_number
+from DKE.src.topic_model_on_nmf import TTopic_Model_ON_NMF
+from evaluation import PythonROUGE
+from feature_extract import get_vocabulary_analyzer_transform, TOKEN_PATTERN, iseq_del_meaningless_words, \
+    iseg_normalize, get_tokenizer, MAX_DF, USE_IDF, count_transform_files
+from __init__ import open_read, STOP_WORDS, TRAINING_DIR, open_write, BASE_DIR, TEST_DIR
 
 __author__ = 'annie'
 
-
-class Text:
-    def __init__(self, text_number, text, dke):
-        self.text = set(text)
-        self.text_number = text_number
-        self.dke = dke
-        self.keywords = []
-        self.rewards = []
-        self.rewards_buffer = []
-        self.r_s_z = np.zeros(dke.num_topics)
-        self.r_s_z_buffer = []
-
-    def get_r_w_z(self, topic, word):
-        r_w_z = self.get_p_z_w(topic, word) * self.dke.theta[self.text_number, topic]
-        return r_w_z
-
-    def get_p_z_w(self, topic, word):
-        p_w_z = self.dke.phi[topic, word]
-        p_w = sum(self.dke.phi[:, word])
-        return p_w_z/p_w
-
-    def reward_function(self, word):
-        rewards = 0
-        r_s_z_buffer = self.r_s_z
-        for topic in range(self.dke.num_topics):
-            r_w_z = self.get_r_w_z(topic, word)
-            r_s_z_buffer[topic] += r_w_z
-            rewards += self.dke.theta[self.text_number, topic] * r_s_z_buffer[topic] ** self.dke.lambda_
-        self.rewards_buffer.append(rewards)
-        self.r_s_z_buffer.append(r_s_z_buffer)
-        return rewards
-
-    def keywords_extract(self):
-        while len(self.keywords) < self.dke.number_of_keywords:
-            words = list(self.text - set(self.keywords))
-            word = max(words, key=self.reward_function)
-            self.keywords.append(word)
-            ind = words.index(word)
-            self.rewards.append(self.rewards_buffer[ind])
-            self.r_s_z += self.r_s_z_buffer[ind]
-            self.r_s_z_buffer = []
-            self.rewards_buffer = []
-        return self.keywords, self.rewards
+LAMBDA = 0.75
 
 class DKE:
-    """
-    See http://infoscience.epfl.ch/record/192441/files/Habibi_ACL_2013.pdf
-    """
-    def __init__(self, docs, vocab, num_topics=5, number_of_keywords=10, zlabels=None, eta=0.95, lambda_=0.75):
-        self.docs = docs
+    def __init__(self, words_topics, docs_topics, vocab, analyzer, lambda_=LAMBDA):
+        self.words_topics = words_topics # 1450 x 5
+        self.docs_topics = docs_topics # 50 x 5
+        self.num_topics = self.docs_topics.shape[1]
         self.vocab = vocab
-        self.num_topics = num_topics
-        self.number_of_keywords = number_of_keywords
-        self.phi, self.theta = topic_model_on_zlda(docs, vocab, num_topics, zlabels, eta)
-        self.keywords = []
-        self.rewards = []
+        self.inverse_vocab = {v: k for k, v in vocab.iteritems()}
+        self.analyzer = analyzer  # vectorizer.build_analyzer()
         self.lambda_ = lambda_
 
-    def keywords_ind_extract(self):
-        for i, doc in enumerate(self.docs):
-            keywords, rewards = Text(i, doc, self).keywords_extract()
-            self.keywords.append(keywords)
-            self.rewards.append(rewards)
-        return self.keywords
+        self.temp_prev_reward_value = 0
+        self.temp_distribution_of_topics = None
+        self.temp_text = None
 
-    def keywords_extract(self):
-        self.keywords_ind_extract()
-        return [[self.vocab[word] for word in doc] for doc in self.keywords]
+    def _get_document_words(self, document_path):
+        text = self.analyzer(document_path)
+        text = set([self.vocab[i] for i in text if i in self.vocab])
+        return text
+
+    def _b_z(self, topic_ind):
+        b_z = 0
+        for word in self.temp_text:
+            b_z += self.words_topics[word, topic_ind]
+        b_z /= float(len(self.temp_text))
+        return b_z
+
+    def _reward_function(self, word):
+        result = 0
+        for topic_ind, topic_f in enumerate(self.temp_distribution_of_topics):
+            result += self._b_z(topic_ind) * pow(self.words_topics[word, topic_ind] + self.temp_prev_reward_value, self.lambda_)
+        return result
+
+    def _get_next_keyword(self):
+        words = list(self.temp_text)
+        rewards = map(self._reward_function, words)
+        ind_argmax = np.argmax(rewards)
+        self.temp_prev_reward_value = rewards[ind_argmax]
+        return words[ind_argmax]
+
+    def _extract_keywords_from_one_document(self, document, number_of_keywords):
+        document_keywords = []
+        self.temp_text = self._get_document_words(document)
+        while self.temp_text and len(document_keywords) < number_of_keywords:
+            next_keyword = self._get_next_keyword()
+            document_keywords.append(self.inverse_vocab[next_keyword])
+            self.temp_text -= {next_keyword}
+        return document_keywords
+
+    def extract_keywords(self, list_of_documents, number_of_keywords=10):
+        result = []
+        for i, document in enumerate(list_of_documents):
+            self.temp_distribution_of_topics = self.docs_topics[i]
+            keywords = self._extract_keywords_from_one_document(document, number_of_keywords)
+            result.append(keywords)
+        return result
 
 
-def save_keywords(keywords, filenames, path_to_demonstrative_file, path_to_results_dir=None):
-    with open_write(path_to_demonstrative_file) as f:
-        for i, file in enumerate(filenames):
-            f.write(u'{0}: {1}\n'.format(os.path.split(file)[-1], u', '.join(keywords[i])))
-    if path_to_results_dir:
-        if not os.path.exists(path_to_results_dir):
-                    os.mkdir(path_to_results_dir)
-        for i, file in enumerate(filenames):
-            with open_write(os.path.join(path_to_results_dir, os.path.split(file)[-1])) as f:
-                f.write(u'\n'.join(keywords[i]))
+if __name__ == '__main__':
+    """----------------- перекладываем файлы из каталогов в одну папку ------------------------"""
+    TEMP_BASE_DIR = BASE_DIR + '.plane'
+    # copy_plane_files_for_base(BASE_DIR, TEMP_BASE_DIR)
 
+    TEMP_BASE_FILES = []
+    for file_name in sorted(os.listdir(TEMP_BASE_DIR)):
+        file_path = os.path.join(TEMP_BASE_DIR, file_name)
+        if os.path.isfile(file_path) and file_name.endswith('.txt'):
+            TEMP_BASE_FILES.append(file_path)
 
+    """----------------- получем dtm и vocab из testing files ------------------------"""
+    settings_for_tokenizer = {
+        'token_pattern': TOKEN_PATTERN,
+        'remover': iseq_del_meaningless_words,   #pymorphy2_del_meaningless_words,
+        'normalizer': iseg_normalize,  #iseg_normalize,   #pymorphy2_normalize,
+        'stemmer': None  # snowball_stemme
+    }
+    tokenizer = get_tokenizer(**settings_for_tokenizer)
 
-if __name__ == "__main__":
-    with open('../data/docs', 'rb') as f:
-        docs = pickle.load(f)
-    with open('../data/vocabulary', 'rb') as f:
-        vocab = pickle.load(f)
-        vocab = {v: k for k, v in vocab.items()}
+    setings_for_vectorizer = {
+        'tokenizer': tokenizer,
+        'preprocessor': None,
+        'stop_words': STOP_WORDS,
+        'treshhold': MAX_DF,  # 0.7
+        'min_df': 2,  # 2
+        'use_idf': USE_IDF,  # True
+        'vocabulary': None
+    }
+    vocab, analyzer, _ = get_vocabulary_analyzer_transform(TEMP_BASE_FILES, setings_for_vectorizer)
+    # setings_for_vectorizer['vocabulary'] = vocab
+    # dtm = count_transform_files(TEMP_BASE_FILES, setings_for_vectorizer)
+    #
+    # """------- получаем topic model из non-negative matrix factorization (NMF) -------------"""
+    # topic_model = TTopic_Model_ON_NMF()
+    # topic_model.fit_topic_model(dtm)
+    # words_topics = topic_model.topics_words.T  # (650, 6)
+    # docs_topics = topic_model.docs_topics  # (110, 6)
+    #
+    # """---------------------------------- запускае dke -------------------------------------"""
+    # dke = DKE(words_topics, docs_topics, vocab, analyzer)
+    # keywords = dke.extract_keywords(TEMP_BASE_FILES)
+    #
+    # """---------------------------------- записываем dke -------------------------------------"""
+    # def write_test_keywords(testing_dir):
+    #     if os.path.exists(testing_dir):
+    #         rmtree(testing_dir)
+    #     os.mkdir(testing_dir)
+    #
+    #     for i, path_file in enumerate(TEMP_BASE_FILES):
+    #         file_name = os.path.basename(path_file).decode('utf-8')
+    #         if file_name in plane_test_files:
+    #             file_path = os.path.join(testing_dir, map_base_name_to_number.get(file_name))
+    #             with open_write(file_path) as f:
+    #                 f.write(u'\n'.join(keywords[i]))
+    #
+    DKE_KEYWORDS_DIR = os.path.join(TEST_DIR, 'dke')
+    # write_test_keywords(DKE_KEYWORDS_DIR)
 
-    dke = DKE(docs, vocab)
-    keywords = dke.keywords_extract()
-    path_to_demonstrative_file = '../data/keywords.txt'
-    path_to_dir = '/Users/annie/SELabs/data/utf_new_RGD/txt/validFiles'
-    filenames = sorted(os.path.join(path_to_dir, file) for file in os.listdir(path_to_dir))
-    path_to_results_dir = '../data/dke'
-    save_keywords(keywords, filenames, path_to_demonstrative_file, path_to_results_dir)
+    """---------------------------------- оценка результата -------------------------------------"""
+    def my_preprocessor(text):
+        text = tokenizer(text)
+        return u' '.join(text)
+
+    settings = {
+        'txtTemp': '../data2/tempSettings.txt',  # tempSetingsTxt
+        'pathTemp': '../data2/tempDir',  # pathTempDir
+        'ROUGE_output_path': '../data2/ROUGE_result.txt',  # ROUGE_result
+        'pathToRefs': ['../data2/test_files/' + i for i in ['d', 'k', 'm']],
+        'ngramOrder': 1,
+        'skipBigram': 1,
+        'reverseSkipBigram': 'u',
+        'useRank': False,
+        'preprocessor': my_preprocessor
+    }
+
+    pr = PythonROUGE(DKE_KEYWORDS_DIR, **settings)
+    commonR, commonP, commonF = pr.run()
+
 
 
